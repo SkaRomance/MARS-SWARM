@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test files
+screenshot_*.png
+test_game.py
+
+# Backup files
+*.bak
+*.tmp

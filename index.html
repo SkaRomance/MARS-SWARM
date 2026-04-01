@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Swarm by MARS - 3D Evolution</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- HUD -->
+        <div id="hud">
+            <div id="score-container">
+                <span id="score-label">SCORE</span>
+                <span id="score-value">0</span>
+            </div>
+            <button id="btn-pause" class="pause-btn">⏸</button>
+            <div id="high-score">BEST: <span id="high-score-value">0</span></div>
+        </div>
+
+        <!-- Touch Controls -->
+        <div id="touch-controls">
+            <button id="btn-up" class="touch-btn" data-dir="up">▲</button>
+            <div class="touch-row">
+                <button id="btn-left" class="touch-btn" data-dir="left">◀</button>
+                <button id="btn-down" class="touch-btn" data-dir="down">▼</button>
+                <button id="btn-right" class="touch-btn" data-dir="right">▶</button>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="main-menu" class="overlay active">
+            <div class="menu-panel">
+                <h1 class="game-title">SWARM</h1>
+                <p class="subtitle">Evolution of Snake</p>
+                <button id="btn-start" class="menu-btn primary">START GAME</button>
+                <button id="btn-highscores" class="menu-btn secondary">HIGH SCORES</button>
+                <div class="controls-hint">
+                    <p>⌨️ Use WASD or Arrows | SPACE to Pause</p>
+                    <p>📱 Touch controls on mobile</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pause-menu" class="overlay">
+            <div class="menu-panel">
+                <h2 class="menu-title">PAUSED</h2>
+                <div class="pause-score">
+                    <span class="score-label-final">CURRENT SCORE</span>
+                    <span id="pause-score-value">0</span>
+                </div>
+                <button id="btn-resume" class="menu-btn primary">RESUME</button>
+                <button id="btn-save" class="menu-btn secondary">SAVE GAME</button>
+                <button id="btn-load" class="menu-btn secondary">LOAD GAME</button>
+                <button id="btn-quit" class="menu-btn tertiary">QUIT</button>
+            </div>
+        </div>
+
+        <!-- Game Over Menu -->
+        <div id="game-over" class="overlay">
+            <div class="menu-panel">
+                <h2 class="menu-title">GAME OVER</h2>
+                <div class="final-score">
+                    <span class="score-label-final">SCORE</span>
+                    <span id="final-score-value">0</span>
+                </div>
+                <button id="btn-restart" class="menu-btn primary">PLAY AGAIN</button>
+                <button id="btn-save-gameover" class="menu-btn secondary">SAVE SCORE</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

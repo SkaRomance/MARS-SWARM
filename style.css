@@ -1,0 +1,383 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --mars-green: #00C851;
+    --mars-green-light: #00ff6a;
+    --mars-green-dark: #008a35;
+    --neon-purple: #9d00ff;
+    --neon-pink: #ff00d4;
+    --dark-bg: #f5f5f5;
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(0, 200, 81, 0.5);
+}
+
+body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--dark-bg);
+    overflow: hidden;
+    touch-action: none;
+    color: #333;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+#game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* HUD */
+#hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 100;
+}
+
+#score-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#score-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mars-green);
+    letter-spacing: 4px;
+    text-shadow: 0 0 10px var(--mars-green);
+}
+
+#score-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 
+        0 0 10px var(--mars-green),
+        0 0 20px var(--mars-green),
+        0 0 40px var(--mars-green);
+    line-height: 1;
+}
+
+#high-score {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 2px;
+}
+
+#high-score-value {
+    color: var(--neon-purple);
+    text-shadow: 0 0 10px var(--neon-purple);
+}
+
+/* Pause Button */
+.pause-btn {
+    position: absolute;
+    top: 20px;
+    right: 50%;
+    transform: translateX(50%);
+    width: 50px;
+    height: 50px;
+    border: 2px solid var(--glass-border);
+    border-radius: 50%;
+    background: rgba(0, 200, 81, 0.1);
+    backdrop-filter: blur(10px);
+    color: var(--mars-green);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pause-btn:hover {
+    background: rgba(0, 200, 81, 0.3);
+    box-shadow: 0 0 20px var(--mars-green);
+    transform: translateX(50%) scale(1.1);
+}
+
+.pause-btn:active {
+    transform: translateX(50%) scale(0.95);
+}
+
+/* Touch Controls */
+#touch-controls {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+}
+
+.touch-row {
+    display: flex;
+    gap: 10px;
+}
+
+.touch-btn {
+    width: 70px;
+    height: 70px;
+    border: 2px solid var(--glass-border);
+    border-radius: 50%;
+    background: rgba(0, 200, 81, 0.1);
+    backdrop-filter: blur(10px);
+    color: var(--mars-green);
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.touch-btn:active {
+    background: rgba(0, 200, 81, 0.3);
+    transform: scale(0.95);
+    box-shadow: 0 0 20px var(--mars-green);
+}
+
+/* Mobile detection */
+@media (hover: none) and (pointer: coarse) {
+    #touch-controls {
+        display: flex;
+    }
+}
+
+/* Overlays */
+.overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+}
+
+.overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.menu-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 50px 60px;
+    text-align: center;
+    box-shadow: 
+        0 10px 60px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.overlay.active .menu-panel {
+    transform: scale(1);
+}
+
+.game-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 72px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--mars-green), var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    letter-spacing: 8px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 20px rgba(0, 200, 81, 0.5));
+}
+
+.subtitle {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    color: rgba(0, 0, 0, 0.6);
+    letter-spacing: 6px;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+}
+
+.menu-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #ff4757;
+    letter-spacing: 6px;
+    margin-bottom: 30px;
+    text-shadow: 
+        0 0 10px #ff4757,
+        0 0 20px #ff4757;
+}
+
+.menu-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 18px 50px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.menu-btn.primary {
+    background: linear-gradient(135deg, var(--mars-green), var(--neon-purple));
+    color: #000;
+    box-shadow: 
+        0 4px 30px rgba(0, 200, 81, 0.4),
+        0 0 60px rgba(0, 200, 81, 0.2);
+}
+
+.menu-btn.primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 
+        0 6px 40px rgba(0, 200, 81, 0.6),
+        0 0 80px rgba(0, 200, 81, 0.3);
+}
+
+.menu-btn.primary:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.menu-btn.secondary {
+    background: transparent;
+    border: 2px solid var(--mars-green);
+    color: var(--mars-green);
+    margin-top: 15px;
+}
+
+.menu-btn.secondary:hover {
+    background: rgba(0, 200, 81, 0.2);
+    box-shadow: 0 0 30px rgba(0, 200, 81, 0.3);
+}
+
+.menu-btn.tertiary {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    padding: 12px 30px;
+    margin-top: 15px;
+}
+
+.menu-btn.tertiary:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #fff;
+}
+
+/* Pause menu specific */
+.pause-score {
+    margin-bottom: 30px;
+}
+
+#pause-score-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--mars-green);
+    text-shadow: 
+        0 0 10px var(--mars-green),
+        0 0 20px var(--mars-green);
+}
+
+.controls-hint {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.controls-hint p {
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 14px;
+    margin: 8px 0;
+    letter-spacing: 1px;
+}
+
+.final-score {
+    margin-bottom: 30px;
+}
+
+.score-label-final {
+    display: block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+}
+
+#final-score-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 64px;
+    font-weight: 900;
+    color: var(--neon-cyan);
+    text-shadow: 
+        0 0 10px var(--neon-cyan),
+        0 0 20px var(--neon-cyan),
+        0 0 40px var(--neon-cyan);
+}
+
+/* Animation keyframes */
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px var(--mars-green); }
+    50% { box-shadow: 0 0 40px var(--mars-green), 0 0 60px var(--neon-purple); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 48px;
+        letter-spacing: 4px;
+    }
+    
+    .menu-panel {
+        padding: 40px 30px;
+        margin: 20px;
+    }
+    
+    #score-value {
+        font-size: 36px;
+    }
+    
+    .menu-btn {
+        padding: 16px 40px;
+        font-size: 14px;
+    }
+}
