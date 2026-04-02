@@ -122,112 +122,49 @@ body {
     transform: translateX(50%) scale(0.95);
 }
 
-/* Touch Controls */
-#touch-controls {
+/* Touch Hint for Mobile */
+.touch-hint {
     position: absolute;
-    bottom: 40px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    display: none;
-    flex-direction: column;
+    display: flex;
     align-items: center;
     gap: 10px;
-    z-index: 100;
-}
-
-.touch-row {
-    display: flex;
-    gap: 10px;
-}
-
-.touch-btn {
-    width: 70px;
-    height: 70px;
-    border: 2px solid var(--glass-border);
-    border-radius: 50%;
-    background: rgba(0, 200, 81, 0.1);
-    backdrop-filter: blur(10px);
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
     color: var(--mars-green);
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.touch-btn:active {
-    background: rgba(0, 200, 81, 0.3);
-    transform: scale(0.95);
-    box-shadow: 0 0 20px var(--mars-green);
-}
-
-/* Mobile detection */
-@media (hover: none) and (pointer: coarse) {
-    #touch-controls {
-        display: none; /* Nascondi pulsanti, usiamo zone */
-    }
-}
-
-/* Invisible Touch Zones - sempre attive per mobile-like experience */
-#touch-zones {
-    position: absolute;
-    inset: 0;
-    z-index: 50;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 100;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    letter-spacing: 1px;
 }
 
-.touch-zone {
-    position: absolute;
-    pointer-events: auto;
-    /* background: rgba(255, 0, 0, 0.1); */ /* Debug - rosso semi-trasparente */
-    background: transparent;
-    cursor: pointer;
+.touch-hint.visible {
+    opacity: 1;
 }
 
-/* Zona superiore (25% alto) */
-#zone-up {
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 25%;
+.swipe-icon {
+    font-size: 18px;
+    animation: swipeHint 1.5s ease-in-out infinite;
 }
 
-/* Zona inferiore (25% basso) */
-#zone-down {
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 25%;
+@keyframes swipeHint {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
 }
 
-/* Zona sinistra (25% largo, tra up e down) */
-#zone-left {
-    top: 25%;
-    bottom: 25%;
-    left: 0;
-    width: 25%;
-}
-
-/* Zona destra (25% largo, tra up e down) */
-#zone-right {
-    top: 25%;
-    bottom: 25%;
-    right: 0;
-    width: 25%;
-}
-
-/* Feedback visivo al tocco */
-.touch-zone:active {
-    background: rgba(0, 200, 81, 0.1);
-}
-
-/* Disabilita touch zones quando menu aperti */
-.overlay.active ~ #touch-zones,
-.overlay.active + #touch-zones {
-    display: none;
+/* Show touch hint only on touch devices when playing */
+@media (hover: none) and (pointer: coarse) {
+    .touch-hint.visible {
+        opacity: 0.8;
+    }
 }
 
 /* Overlays */

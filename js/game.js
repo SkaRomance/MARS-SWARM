@@ -31,7 +31,7 @@ export class Game {
             mainMenu: document.getElementById('main-menu'),
             gameOver: document.getElementById('game-over'),
             pauseMenu: document.getElementById('pause-menu'),
-            touchControls: document.getElementById('touch-controls')
+            touchHint: document.getElementById('touch-hint')
         };
         
         // Input state
@@ -71,29 +71,8 @@ export class Game {
             this.keys[e.key] = false;
         });
         
-        // Touch controls (pulsanti)
-        const touchButtons = document.querySelectorAll('.touch-btn');
-        touchButtons.forEach(btn => {
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.handleTouchInput(btn.dataset.dir);
-            });
-            btn.addEventListener('mousedown', (e) => {
-                this.handleTouchInput(btn.dataset.dir);
-            });
-        });
-        
-        // Invisible touch zones (clicca sui lati dello schermo)
-        const touchZones = document.querySelectorAll('.touch-zone');
-        touchZones.forEach(zone => {
-            zone.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.handleTouchInput(zone.dataset.dir);
-            }, { passive: false });
-            zone.addEventListener('click', (e) => {
-                this.handleTouchInput(zone.dataset.dir);
-            });
-        });
+        // SWIPE GESTURES per mobile
+        this.setupSwipeGestures();
         
         // Menu buttons
         document.getElementById('btn-start').addEventListener('click', () => this.start());
@@ -108,6 +87,84 @@ export class Game {
         
         // Prevent context menu
         window.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
+    
+    setupSwipeGestures() {
+        const container = document.getElementById('game-container');
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        
+        // Threshold per considerare uno swipe (pixel)
+        const SWIPE_THRESHOLD = 30;
+        // Tempo massimo per uno swipe (ms)
+        const SWIPE_TIMEOUT = 300;
+        
+        container.addEventListener('touchstart', (e) => {
+            // Ignora touch sui menu/pulsanti
+            if (e.target.closest('.overlay.active') || e.target.closest('.menu-btn') || e.target.closest('.pause-btn')) {
+                return;
+            }
+            
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchStartTime = Date.now();
+        }, { passive: true });
+        
+        container.addEventListener('touchend', (e) => {
+            // Ignora se menu aperti
+            if (e.target.closest('.overlay.active')) {
+                return;
+            }
+            
+            const touch = e.changedTouches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            const deltaTime = Date.now() - touchStartTime;
+            
+            // Se troppo lento, è un tap non uno swipe
+            if (deltaTime > SWIPE_TIMEOUT) {
+                return;
+            }
+            
+            const absX = Math.abs(deltaX);
+            const absY = Math.abs(deltaY);
+            
+            // Se il movimento è sotto il threshold, è un tap → pausa
+            if (absX < SWIPE_THRESHOLD && absY < SWIPE_THRESHOLD) {
+                if (this.isPlaying && !this.isGameOver) {
+                    this.togglePause();
+                }
+                return;
+            }
+            
+            // Determina direzione dello swipe
+            let direction = null;
+            
+            if (absX > absY) {
+                // Swipe orizzontale
+                if (absX > SWIPE_THRESHOLD) {
+                    direction = deltaX > 0 ? 'right' : 'left';
+                }
+            } else {
+                // Swipe verticale
+                if (absY > SWIPE_THRESHOLD) {
+                    direction = deltaY > 0 ? 'down' : 'up';
+                }
+            }
+            
+            if (direction) {
+                this.handleTouchInput(direction);
+            }
+        }, { passive: true });
+        
+        // Prevents scrolling durante il gioco
+        container.addEventListener('touchmove', (e) => {
+            if (this.isPlaying && !this.isPaused) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
     
     handleKeyInput(key) {
@@ -171,6 +228,17 @@ export class Game {
         this.ui.score.textContent = '0';
         this.ui.mainMenu.classList.remove('active');
         this.ui.gameOver.classList.remove('active');
+        
+        // Show touch hint on mobile devices
+        if (this.ui.touchHint && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+            this.ui.touchHint.classList.add('visible');
+            // Nascondi dopo 4 secondi
+            setTimeout(() => {
+                if (this.ui.touchHint) {
+                    this.ui.touchHint.classList.remove('visible');
+                }
+            }, 4000);
+        }
         
         // Reset worm
         this.worm.reset();
@@ -383,6 +451,11 @@ export class Game {
         this.ui.pauseMenu.classList.remove('active');
         this.ui.gameOver.classList.remove('active');
         this.ui.mainMenu.classList.add('active');
+        
+        // Hide touch hint
+        if (this.ui.touchHint) {
+            this.ui.touchHint.classList.remove('visible');
+        }
     }
     
     showNotification(message) {
@@ -423,6 +496,11 @@ export class Game {
         // Show final score
         this.ui.finalScore.textContent = this.score;
         this.ui.gameOver.classList.add('active');
+        
+        // Hide touch hint
+        if (this.ui.touchHint) {
+            this.ui.touchHint.classList.remove('visible');
+        }
         
         // Explosion effect at head position
         this.particles.createExplosionEffect(

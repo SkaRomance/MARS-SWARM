@@ -28,22 +28,10 @@
             <div id="high-score">BEST: <span id="high-score-value">0</span></div>
         </div>
 
-        <!-- Touch Controls (pulsanti - visibili solo su mobile) -->
-        <div id="touch-controls">
-            <button id="btn-up" class="touch-btn" data-dir="up">▲</button>
-            <div class="touch-row">
-                <button id="btn-left" class="touch-btn" data-dir="left">◀</button>
-                <button id="btn-down" class="touch-btn" data-dir="down">▼</button>
-                <button id="btn-right" class="touch-btn" data-dir="right">▶</button>
-            </div>
-        </div>
-
-        <!-- Invisible Touch Zones (per controllo a zone su tutto lo schermo) -->
-        <div id="touch-zones">
-            <div id="zone-up" class="touch-zone" data-dir="up"></div>
-            <div id="zone-down" class="touch-zone" data-dir="down"></div>
-            <div id="zone-left" class="touch-zone" data-dir="left"></div>
-            <div id="zone-right" class="touch-zone" data-dir="right"></div>
+        <!-- Touch hint for mobile -->
+        <div id="touch-hint" class="touch-hint hidden">
+            <span class="swipe-icon">👆</span>
+            <span>Swipe per muovere • Tap per pausa</span>
         </div>
 
         <!-- Main Menu -->
@@ -54,8 +42,8 @@
                 <button id="btn-start" class="menu-btn primary">START GAME</button>
                 <button id="btn-highscores" class="menu-btn secondary">HIGH SCORES</button>
                 <div class="controls-hint">
-                    <p>⌨️ Use WASD or Arrows | SPACE to Pause</p>
-                    <p>📱 Touch controls on mobile</p>
+                    <p>⌨️ WASD o Frecce • SPAZIO per Pausa</p>
+                    <p>📱 SWIPE per muovere • TAP per Pausa</p>
                 </div>
             </div>
         </div>
