@@ -71,7 +71,7 @@ export class Game {
             this.keys[e.key] = false;
         });
         
-        // Touch controls
+        // Touch controls (pulsanti)
         const touchButtons = document.querySelectorAll('.touch-btn');
         touchButtons.forEach(btn => {
             btn.addEventListener('touchstart', (e) => {
@@ -80,6 +80,18 @@ export class Game {
             });
             btn.addEventListener('mousedown', (e) => {
                 this.handleTouchInput(btn.dataset.dir);
+            });
+        });
+        
+        // Invisible touch zones (clicca sui lati dello schermo)
+        const touchZones = document.querySelectorAll('.touch-zone');
+        touchZones.forEach(zone => {
+            zone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleTouchInput(zone.dataset.dir);
+            }, { passive: false });
+            zone.addEventListener('click', (e) => {
+                this.handleTouchInput(zone.dataset.dir);
             });
         });
         

@@ -28,7 +28,7 @@
             <div id="high-score">BEST: <span id="high-score-value">0</span></div>
         </div>
 
-        <!-- Touch Controls -->
+        <!-- Touch Controls (pulsanti - visibili solo su mobile) -->
         <div id="touch-controls">
             <button id="btn-up" class="touch-btn" data-dir="up">▲</button>
             <div class="touch-row">
@@ -36,6 +36,14 @@
                 <button id="btn-down" class="touch-btn" data-dir="down">▼</button>
                 <button id="btn-right" class="touch-btn" data-dir="right">▶</button>
             </div>
+        </div>
+
+        <!-- Invisible Touch Zones (per controllo a zone su tutto lo schermo) -->
+        <div id="touch-zones">
+            <div id="zone-up" class="touch-zone" data-dir="up"></div>
+            <div id="zone-down" class="touch-zone" data-dir="down"></div>
+            <div id="zone-left" class="touch-zone" data-dir="left"></div>
+            <div id="zone-right" class="touch-zone" data-dir="right"></div>
         </div>
 
         <!-- Main Menu -->

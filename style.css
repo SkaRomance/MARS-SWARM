@@ -167,8 +167,67 @@ body {
 /* Mobile detection */
 @media (hover: none) and (pointer: coarse) {
     #touch-controls {
-        display: flex;
+        display: none; /* Nascondi pulsanti, usiamo zone */
     }
+}
+
+/* Invisible Touch Zones - sempre attive per mobile-like experience */
+#touch-zones {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.touch-zone {
+    position: absolute;
+    pointer-events: auto;
+    /* background: rgba(255, 0, 0, 0.1); */ /* Debug - rosso semi-trasparente */
+    background: transparent;
+    cursor: pointer;
+}
+
+/* Zona superiore (25% alto) */
+#zone-up {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 25%;
+}
+
+/* Zona inferiore (25% basso) */
+#zone-down {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 25%;
+}
+
+/* Zona sinistra (25% largo, tra up e down) */
+#zone-left {
+    top: 25%;
+    bottom: 25%;
+    left: 0;
+    width: 25%;
+}
+
+/* Zona destra (25% largo, tra up e down) */
+#zone-right {
+    top: 25%;
+    bottom: 25%;
+    right: 0;
+    width: 25%;
+}
+
+/* Feedback visivo al tocco */
+.touch-zone:active {
+    background: rgba(0, 200, 81, 0.1);
+}
+
+/* Disabilita touch zones quando menu aperti */
+.overlay.active ~ #touch-zones,
+.overlay.active + #touch-zones {
+    display: none;
 }
 
 /* Overlays */

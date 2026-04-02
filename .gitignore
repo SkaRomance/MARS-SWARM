@@ -22,3 +22,4 @@ test_game.py
 # Backup files
 *.bak
 *.tmp
+.vercel
