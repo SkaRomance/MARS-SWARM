@@ -560,13 +560,15 @@ export class Game {
             );
         }
         
-        // Camera follow (smooth) con bounds per mobile
+        // Camera: rimane fissa dall'alto, solo leggerissimo offset per centrare il verme
+        // NON ruota per mantenere i comandi swipe coerenti (su=SU, giu=GIU, etc.)
         const headPos = this.worm.getHeadPosition();
         const cameraBounds = this.renderer.cameraBounds || 20;
         
-        // Calcola target position con clamping ai bounds
-        let targetX = headPos.x * 0.3;
-        let targetZ = headPos.z * 0.3;
+        // Offset molto leggero per tenere il verme più o meno centrato
+        // ma senza ruotare la camera (lookAt rimane sempre a 0,0,0)
+        let targetX = headPos.x * 0.15;
+        let targetZ = headPos.z * 0.15;
         
         // Clamping per mantenere i bordi visibili
         targetX = Math.max(-cameraBounds, Math.min(cameraBounds, targetX));
@@ -574,12 +576,13 @@ export class Game {
         
         const targetCamPos = new THREE.Vector3(
             targetX,
-            this.renderer.camera.position.y, // Mantieni l'altezza corrente (diversa per mobile/desktop)
-            targetZ + this.renderer.camera.position.z * 0.8 // Offset basato sulla posizione Z della camera
+            this.renderer.camera.position.y, // Altezza fissa (diversa per mobile/desktop)
+            targetZ + this.renderer.camera.position.z * 0.5 // Offset Z leggero
         );
         
+        // Muovi la camera ma MANTAINI la rotazione fissa verso il centro
         this.renderer.camera.position.lerp(targetCamPos, deltaTime * 2);
-        this.renderer.camera.lookAt(headPos.x * 0.3, 0, headPos.z * 0.3);
+        this.renderer.camera.lookAt(0, 0, 0); // GUARDO SEMPRE IL CENTRO, non il verme
     }
     
     loop(time) {
