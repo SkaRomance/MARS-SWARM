@@ -560,29 +560,20 @@ export class Game {
             );
         }
         
-        // Camera: rimane fissa dall'alto, solo leggerissimo offset per centrare il verme
-        // NON ruota per mantenere i comandi swipe coerenti (su=SU, giu=GIU, etc.)
-        const headPos = this.worm.getHeadPosition();
-        const cameraBounds = this.renderer.cameraBounds || 20;
-        
-        // Offset molto leggero per tenere il verme più o meno centrato
-        // ma senza ruotare la camera (lookAt rimane sempre a 0,0,0)
-        let targetX = headPos.x * 0.15;
-        let targetZ = headPos.z * 0.15;
-        
-        // Clamping per mantenere i bordi visibili
-        targetX = Math.max(-cameraBounds, Math.min(cameraBounds, targetX));
-        targetZ = Math.max(-cameraBounds, Math.min(cameraBounds, targetZ));
-        
-        const targetCamPos = new THREE.Vector3(
-            targetX,
-            this.renderer.camera.position.y, // Altezza fissa (diversa per mobile/desktop)
-            targetZ + this.renderer.camera.position.z * 0.5 // Offset Z leggero
-        );
-        
-        // Muovi la camera ma MANTAINI la rotazione fissa verso il centro
-        this.renderer.camera.position.lerp(targetCamPos, deltaTime * 2);
-        this.renderer.camera.lookAt(0, 0, 0); // GUARDO SEMPRE IL CENTRO, non il verme
+        // Camera: COMPLETAMENTE STATICA su mobile per comandi swipe coerenti
+        // Nessun movimento, nessun lerp, nessun offset
+        if (!this.renderer.isMobile) {
+            // Solo su desktop: camera leggermente dinamica
+            const headPos = this.worm.getHeadPosition();
+            const targetCamPos = new THREE.Vector3(
+                headPos.x * 0.3,
+                25,
+                headPos.z * 0.3 + 25
+            );
+            this.renderer.camera.position.lerp(targetCamPos, deltaTime * 2);
+            this.renderer.camera.lookAt(headPos.x * 0.5, 0, headPos.z * 0.5);
+        }
+        // Su mobile: la camera è completamente statica, impostata in initCamera
     }
     
     loop(time) {

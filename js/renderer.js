@@ -54,32 +54,33 @@ export class Renderer {
      */
     getCameraSettings() {
         const aspect = this.width / this.height;
-        const boundarySize = this.boundarySize || 27; // Default se non ancora inizializzato
+        const boundarySize = this.boundarySize || 27;
         
         if (this.isMobile) {
-            // Mobile: camera dall'alto (bird's eye view) per swipe coerenti
+            // Mobile: camera dall'alto (TOP-DOWN) per comandi swipe perfetti
+            // Molto alta, FOV basso, guarda verticalmente verso il basso
             if (aspect < 1) {
-                // Portrait: schermo alto e stretto
+                // Portrait
                 return {
-                    fov: 70,
+                    fov: 45,    // FOV stretto = meno distorsione
                     aspect: aspect,
-                    y: 55,      // Molto alta per vedere tutto dall'alto
-                    z: 5,       // Quasi sopra il centro
-                    bounds: boundarySize * 0.3
+                    y: 80,      // Molto in alto
+                    z: 0.1,     // Quasi esattamente sopra il centro
+                    bounds: 0   // Camera statica
                 };
             } else {
-                // Landscape: schermo largo
+                // Landscape
                 return {
-                    fov: 65,
+                    fov: 40,
                     aspect: aspect,
-                    y: 50,
-                    z: 8,
-                    bounds: boundarySize * 0.4
+                    y: 70,
+                    z: 0.1,
+                    bounds: 0
                 };
             }
         }
         
-        // Desktop: impostazioni standard (leggermente obliqua)
+        // Desktop: impostazioni standard
         return {
             fov: 60,
             aspect: aspect,
