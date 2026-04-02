@@ -4,6 +4,7 @@ import { Fruit } from './fruit.js';
 import { ParticleSystem } from './particles.js';
 import { PovCamera } from './pov-camera.js';
 import { HazardManager } from './hazards.js';
+import { getAnalytics } from './analytics.js';
 
 export class Game {
     constructor() {
@@ -14,6 +15,7 @@ export class Game {
         this.particles = null;
         this.povCamera = null;
         this.hazardManager = null;
+        this.analytics = getAnalytics();
         
         this.score = 0;
         this.highScore = parseInt(localStorage.getItem('swarm_highscore')) || 0;
@@ -47,7 +49,19 @@ export class Game {
             safetyNormative: document.getElementById('safety-normative'),
             safetyArticle: document.getElementById('safety-article'),
             safetyPrevention: document.getElementById('safety-prevention'),
-            safetyScoreValue: document.getElementById('safety-score-value')
+            safetyScoreValue: document.getElementById('safety-score-value'),
+            // POV mobile UI
+            povIndicator: document.getElementById('pov-indicator'),
+            directionArrow: document.getElementById('direction-arrow'),
+            povRadar: document.getElementById('pov-radar'),
+            radarFruit: document.getElementById('radar-fruit'),
+            // Stats panel
+            statsPanel: document.getElementById('stats-panel'),
+            statSessions: document.getElementById('stat-sessions'),
+            statIncidents: document.getElementById('stat-incidents'),
+            statAvg: document.getElementById('stat-avg'),
+            statBest: document.getElementById('stat-best'),
+            statsHazards: document.getElementById('stats-hazards')
         };
         
         // Input state
@@ -105,6 +119,10 @@ export class Game {
         });
         document.getElementById('btn-restart').addEventListener('click', () => this.restart());
         document.getElementById('btn-highscores').addEventListener('click', () => this.showHighScores());
+        document.getElementById('btn-stats').addEventListener('click', () => this.showStats());
+        document.getElementById('btn-close-stats').addEventListener('click', () => this.hideStats());
+        document.getElementById('btn-export').addEventListener('click', () => this.analytics.exportData());
+        document.getElementById('btn-report').addEventListener('click', () => this.analytics.generateReport());
         document.getElementById('btn-pause').addEventListener('click', () => this.togglePause());
         document.getElementById('btn-resume').addEventListener('click', () => this.togglePause());
         document.getElementById('btn-save').addEventListener('click', () => this.saveGame());
@@ -272,6 +290,10 @@ export class Game {
         this.ui.score.textContent = '0';
         this.ui.mainMenu.classList.remove('active');
         this.ui.gameOver.classList.remove('active');
+        this.ui.gameOverSafety.classList.remove('active');
+        
+        // Start analytics session
+        this.analytics.startSession(this.gameMode);
         
         // Show touch hint on mobile devices
         if (this.ui.touchHint && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
@@ -282,6 +304,15 @@ export class Game {
                     this.ui.touchHint.classList.remove('visible');
                 }
             }, 4000);
+        }
+        
+        // Show POV UI elements (solo modalità POV su mobile)
+        if (this.gameMode === 'pov' && this.renderer.isMobile) {
+            if (this.ui.povIndicator) this.ui.povIndicator.classList.remove('hidden');
+            if (this.ui.povRadar) this.ui.povRadar.classList.remove('hidden');
+        } else {
+            if (this.ui.povIndicator) this.ui.povIndicator.classList.add('hidden');
+            if (this.ui.povRadar) this.ui.povRadar.classList.add('hidden');
         }
         
         // Reset worm
@@ -435,6 +466,43 @@ export class Game {
         });
     }
     
+    showStats() {
+        const stats = this.analytics.getStats();
+        const distribution = this.analytics.getHazardDistribution();
+        
+        // Update stats numbers
+        if (this.ui.statSessions) {
+            this.ui.statSessions.textContent = stats.totalSessions || 0;
+        }
+        if (this.ui.statIncidents) {
+            this.ui.statIncidents.textContent = stats.totalIncidents || 0;
+        }
+        if (this.ui.statAvg) {
+            this.ui.statAvg.textContent = stats.avgScore || 0;
+        }
+        if (this.ui.statBest) {
+            this.ui.statBest.textContent = stats.bestScore || 0;
+        }
+        
+        // Update hazards list
+        if (this.ui.statsHazards) {
+            if (distribution.length === 0) {
+                this.ui.statsHazards.innerHTML = '<li>Nessun incidente registrato</li>';
+            } else {
+                this.ui.statsHazards.innerHTML = distribution.map(h => 
+                    `<li>${h.name} <span class="hazard-count">${h.count}</span></li>`
+                ).join('');
+            }
+        }
+        
+        // Show panel
+        this.ui.statsPanel.classList.add('active');
+    }
+    
+    hideStats() {
+        this.ui.statsPanel.classList.remove('active');
+    }
+    
     loadSavedGameData() {
         const saved = localStorage.getItem('swarm_saved_game');
         if (saved) {
@@ -557,6 +625,9 @@ export class Game {
             this.worm.getHeadPosition(),
             0xff4757
         );
+        
+        // End analytics session
+        this.analytics.endSession(this.score);
     }
     
     gameOverSafety(hazardData) {
@@ -597,10 +668,12 @@ export class Game {
         // Show safety game over screen
         this.ui.gameOverSafety.classList.add('active');
         
-        // Hide touch hint
+        // Hide touch hint and POV UI
         if (this.ui.touchHint) {
             this.ui.touchHint.classList.remove('visible');
         }
+        if (this.ui.povIndicator) this.ui.povIndicator.classList.add('hidden');
+        if (this.ui.povRadar) this.ui.povRadar.classList.add('hidden');
         
         // Explosion effect
         this.particles.createExplosionEffect(
@@ -608,21 +681,14 @@ export class Game {
             0xff4757
         );
         
-        // Log incident for analytics
-        this.logIncident(hazardData);
+        // End analytics session
+        this.analytics.endSession(this.score);
     }
     
     logIncident(hazardData) {
-        // Local analytics for safety incidents
-        const incidents = JSON.parse(localStorage.getItem('swarm_safety_incidents') || '[]');
-        incidents.push({
-            hazardId: hazardData.id,
-            hazardName: hazardData.name,
-            timestamp: new Date().toISOString(),
-            score: this.score,
-            gameMode: this.gameMode
-        });
-        localStorage.setItem('swarm_safety_incidents', JSON.stringify(incidents.slice(-50))); // Keep last 50
+        // Log to analytics
+        const headPos = this.worm.getHeadPosition();
+        this.analytics.logIncident(hazardData, this.score, { x: headPos.x, z: headPos.z });
     }
     
     checkFruitCollision() {
@@ -712,6 +778,45 @@ export class Game {
                 this.renderer.camera.lookAt(headPos.x * 0.5, 0, headPos.z * 0.5);
             }
             // Mobile: camera statica impostata in initCamera
+        }
+        
+        // Update POV UI indicators (mobile)
+        if (this.gameMode === 'pov') {
+            this.updatePovUI();
+        }
+    }
+    
+    updatePovUI() {
+        if (!this.renderer.isMobile) return;
+        
+        const headPos = this.worm.getHeadPosition();
+        const direction = this.worm.direction;
+        
+        // Update direction arrow
+        if (this.ui.directionArrow) {
+            const angle = Math.atan2(direction.x, direction.z) * (180 / Math.PI);
+            this.ui.directionArrow.style.transform = `rotate(${angle}deg)`;
+        }
+        
+        // Update radar
+        if (this.ui.radarFruit && this.fruit) {
+            const fruitPos = this.fruit.getPosition();
+            const dx = fruitPos.x - headPos.x;
+            const dz = fruitPos.z - headPos.z;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+            
+            if (distance < 30) {
+                // Scala per radar (40px = 30 unità)
+                const scale = 40 / 30;
+                const radarX = 40 + dx * scale;
+                const radarY = 40 + dz * scale;
+                
+                this.ui.radarFruit.style.display = 'block';
+                this.ui.radarFruit.style.left = radarX + 'px';
+                this.ui.radarFruit.style.top = radarY + 'px';
+            } else {
+                this.ui.radarFruit.style.display = 'none';
+            }
         }
     }
     

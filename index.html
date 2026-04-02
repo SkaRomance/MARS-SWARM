@@ -34,6 +34,21 @@
             <span>Swipe per muovere</span>
         </div>
 
+        <!-- POV Direction Indicator (mobile) -->
+        <div id="pov-indicator" class="pov-indicator hidden">
+            <div class="direction-arrow" id="direction-arrow">↑</div>
+            <div class="direction-label">Direzione</div>
+        </div>
+
+        <!-- POV Radar (mini-map) -->
+        <div id="pov-radar" class="pov-radar hidden">
+            <div class="radar-container">
+                <div class="radar-center"></div>
+                <div class="radar-fruit" id="radar-fruit"></div>
+                <div class="radar-hazards" id="radar-hazards"></div>
+            </div>
+        </div>
+
         <!-- Main Menu -->
         <div id="main-menu" class="overlay active">
             <div class="menu-panel">
@@ -53,6 +68,7 @@
                     </button>
                 </div>
                 <button id="btn-highscores" class="menu-btn secondary">HIGH SCORES</button>
+                <button id="btn-stats" class="menu-btn secondary">📊 STATISTICHE SAFETY</button>
                 <div class="controls-hint">
                     <p>⌨️ WASD o Frecce • SPAZIO per Pausa</p>
                     <p>📱 SWIPE per muovere • ⏸️ per Pausa</p>
@@ -109,6 +125,46 @@
                 
                 <button id="btn-restart-safety" class="menu-btn primary">RIPROVA</button>
                 <button id="btn-learn-more" class="menu-btn secondary">📚 APPROFONDISCI</button>
+            </div>
+        </div>
+
+        <!-- Statistics Panel -->
+        <div id="stats-panel" class="overlay">
+            <div class="menu-panel stats-panel">
+                <h2 class="menu-title">📊 STATISTICHE SAFETY</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="stat-sessions">0</span>
+                        <span class="stat-label">Sessioni</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="stat-incidents">0</span>
+                        <span class="stat-label">Incidenti</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="stat-avg">0</span>
+                        <span class="stat-label">Punteggio Medio</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="stat-best">0</span>
+                        <span class="stat-label">Record</span>
+                    </div>
+                </div>
+                
+                <div class="stats-section">
+                    <h3>🚨 Pericoli Più Comuni</h3>
+                    <ul id="stats-hazards" class="stats-list">
+                        <li>Nessun dato disponibile</li>
+                    </ul>
+                </div>
+                
+                <div class="stats-actions">
+                    <button id="btn-export" class="menu-btn secondary">📤 Esporta JSON</button>
+                    <button id="btn-report" class="menu-btn secondary">📄 Report HTML</button>
+                </div>
+                
+                <button id="btn-close-stats" class="menu-btn tertiary">CHIUDI</button>
             </div>
         </div>
 

@@ -454,6 +454,222 @@ body {
     font-size: 20px;
 }
 
+/* POV Mobile UI */
+.pov-indicator {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.direction-arrow {
+    font-size: 32px;
+    color: var(--mars-green);
+    text-shadow: 0 0 10px var(--mars-green);
+    transition: transform 0.2s ease;
+}
+
+.direction-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 2px;
+}
+
+/* POV Radar (mini-map) */
+.pov-radar {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.radar-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid var(--mars-green);
+    background: rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.radar-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: var(--mars-green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--mars-green);
+}
+
+.radar-fruit {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #ff00d4;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #ff00d4;
+    display: none;
+}
+
+.radar-hazard {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: #ff4757;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #ff4757;
+}
+
+/* Comfort settings panel */
+.comfort-settings {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 25px;
+    z-index: 300;
+    display: none;
+    min-width: 280px;
+}
+
+.comfort-settings.active {
+    display: block;
+}
+
+.comfort-settings h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: var(--mars-green);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.setting-item {
+    margin-bottom: 15px;
+}
+
+.setting-item label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.setting-item input[type="range"] {
+    width: 100%;
+}
+
+.setting-value {
+    text-align: right;
+    font-size: 11px;
+    color: #666;
+}
+
+/* Statistics Panel */
+.stats-panel {
+    max-width: 500px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.stat-item {
+    background: rgba(0, 200, 81, 0.1);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--mars-green);
+    text-shadow: 0 0 10px var(--mars-green);
+}
+
+.stat-label {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stats-section {
+    text-align: left;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+}
+
+.stats-section h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    color: var(--mars-green);
+    margin-bottom: 10px;
+}
+
+.stats-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.stats-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.stats-list li:last-child {
+    border-bottom: none;
+}
+
+.hazard-count {
+    font-weight: 700;
+    color: #ff4757;
+}
+
+.stats-actions {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.stats-actions .menu-btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 12px;
+}
+
 /* Pause menu specific */
 .pause-score {
     margin-bottom: 30px;
