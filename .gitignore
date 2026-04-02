@@ -23,3 +23,8 @@ test_game.py
 *.bak
 *.tmp
 .vercel
+
+# BMad temp files
+_bmad_*.json
+_run_*.py
+_bmad-output/
