@@ -113,8 +113,8 @@ export class Game {
         }, { passive: true });
         
         container.addEventListener('touchend', (e) => {
-            // Ignora se menu aperti
-            if (e.target.closest('.overlay.active')) {
+            // Ignora se menu aperti o se il target è il pulsante pause
+            if (e.target.closest('.overlay.active') || e.target.closest('.pause-btn')) {
                 return;
             }
             
@@ -123,7 +123,7 @@ export class Game {
             const deltaY = touch.clientY - touchStartY;
             const deltaTime = Date.now() - touchStartTime;
             
-            // Se troppo lento, è un tap non uno swipe
+            // Se troppo lento, ignora
             if (deltaTime > SWIPE_TIMEOUT) {
                 return;
             }
@@ -131,11 +131,9 @@ export class Game {
             const absX = Math.abs(deltaX);
             const absY = Math.abs(deltaY);
             
-            // Se il movimento è sotto il threshold, è un tap → pausa
+            // Se il movimento è sotto il threshold, era un tap → ignora
+            // La pausa è solo dal pulsante pause esplicito
             if (absX < SWIPE_THRESHOLD && absY < SWIPE_THRESHOLD) {
-                if (this.isPlaying && !this.isGameOver) {
-                    this.togglePause();
-                }
                 return;
             }
             
