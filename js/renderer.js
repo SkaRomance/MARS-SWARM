@@ -57,24 +57,23 @@ export class Renderer {
         const boundarySize = this.boundarySize || 27;
         
         if (this.isMobile) {
-            // Mobile: camera dall'alto (TOP-DOWN) per comandi swipe perfetti
-            // Molto alta, FOV basso, guarda verticalmente verso il basso
+            // Mobile: camera dall'alto con FOV ampio per vedere tutto il tavolo
             if (aspect < 1) {
-                // Portrait
+                // Portrait (schermo alto e stretto): FOV verticale deve essere ampio
                 return {
-                    fov: 45,    // FOV stretto = meno distorsione
+                    fov: 75,    // FOV ampio per vedere tutto
                     aspect: aspect,
-                    y: 80,      // Molto in alto
-                    z: 0.1,     // Quasi esattamente sopra il centro
+                    y: 50,      // Altezza moderata per vedere i lati
+                    z: 20,      // Leggermente indietro per vedere meglio
                     bounds: 0   // Camera statica
                 };
             } else {
-                // Landscape
+                // Landscape (schermo largo): più facile vedere tutto
                 return {
-                    fov: 40,
+                    fov: 70,
                     aspect: aspect,
-                    y: 70,
-                    z: 0.1,
+                    y: 45,
+                    z: 25,
                     bounds: 0
                 };
             }
