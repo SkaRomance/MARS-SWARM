@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { isMobile } from './device-detector.js';
 
 export class Renderer {
     constructor(canvas) {
         this.canvas = canvas;
         this.width = window.innerWidth;
         this.height = window.innerHeight;
+        this.isMobile = isMobile();
         
         this.initScene();
         this.initCamera();
@@ -30,17 +32,63 @@ export class Renderer {
     }
     
     initCamera() {
-        const aspect = this.width / this.height;
+        const settings = this.getCameraSettings();
         
         this.camera = new THREE.PerspectiveCamera(
-            60, 
-            aspect, 
+            settings.fov, 
+            settings.aspect, 
             0.1, 
             1000
         );
         
-        this.camera.position.set(0, 25, 25);
+        this.camera.position.set(0, settings.y, settings.z);
         this.camera.lookAt(0, 0, 0);
+        
+        // Salva i limiti della camera per il clamping
+        this.cameraBounds = settings.bounds;
+    }
+    
+    /**
+     * Calcola le impostazioni ottimali della camera in base al dispositivo
+     */
+    getCameraSettings() {
+        const aspect = this.width / this.height;
+        const boundarySize = this.boundarySize || 27; // Default se non ancora inizializzato
+        
+        // Aggiungi margine del 20% per vedere oltre i bordi
+        const visibleArea = boundarySize * 1.2;
+        
+        if (this.isMobile) {
+            // Mobile: FOV più ampio per vedere tutto il campo
+            if (aspect < 1) {
+                // Portrait: schermo alto e stretto
+                return {
+                    fov: 80,
+                    aspect: aspect,
+                    y: 42,      // Camera più alta per vedere più area
+                    z: 18,      // Più vicina per ingrandire
+                    bounds: boundarySize * 0.5
+                };
+            } else {
+                // Landscape: schermo largo
+                return {
+                    fov: 75,
+                    aspect: aspect,
+                    y: 38,
+                    z: 22,
+                    bounds: boundarySize * 0.6
+                };
+            }
+        }
+        
+        // Desktop: impostazioni standard
+        return {
+            fov: 60,
+            aspect: aspect,
+            y: 25,
+            z: 25,
+            bounds: boundarySize * 0.8
+        };
     }
     
     initRenderer() {
@@ -182,7 +230,8 @@ export class Renderer {
     }
     
     createBoundary() {
-        const boundarySize = 28;
+        // Dimensione boundary: più piccola su mobile per migliore visibilità
+        const boundarySize = this.isMobile ? 22 : 28;
         const wallGeometry = new THREE.BoxGeometry(1, 2, boundarySize * 2);
         // Muri grigi semplici - sul tavolo non cambia
         const wallMaterial = new THREE.MeshStandardMaterial({
@@ -358,6 +407,21 @@ export class Renderer {
     onResize() {
         this.width = window.innerWidth;
         this.height = window.innerHeight;
+        
+        // Aggiorna stato mobile in caso di cambio dispositivo/emulazione
+        const newIsMobile = isMobile();
+        const deviceChanged = this.isMobile !== newIsMobile;
+        this.isMobile = newIsMobile;
+        
+        // Se il dispositivo è cambiato o è mobile (dove l'orientamento conta di più),
+        // ricalcola completamente le impostazioni della camera
+        if (deviceChanged || this.isMobile) {
+            const settings = this.getCameraSettings();
+            this.camera.fov = settings.fov;
+            this.camera.position.y = settings.y;
+            this.camera.position.z = settings.z;
+            this.cameraBounds = settings.bounds;
+        }
         
         this.camera.aspect = this.width / this.height;
         this.camera.updateProjectionMatrix();

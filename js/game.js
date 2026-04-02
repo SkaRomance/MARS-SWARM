@@ -560,15 +560,26 @@ export class Game {
             );
         }
         
-        // Camera follow (smooth)
+        // Camera follow (smooth) con bounds per mobile
         const headPos = this.worm.getHeadPosition();
+        const cameraBounds = this.renderer.cameraBounds || 20;
+        
+        // Calcola target position con clamping ai bounds
+        let targetX = headPos.x * 0.3;
+        let targetZ = headPos.z * 0.3;
+        
+        // Clamping per mantenere i bordi visibili
+        targetX = Math.max(-cameraBounds, Math.min(cameraBounds, targetX));
+        targetZ = Math.max(-cameraBounds, Math.min(cameraBounds, targetZ));
+        
         const targetCamPos = new THREE.Vector3(
-            headPos.x * 0.3,
-            25,
-            headPos.z * 0.3 + 25
+            targetX,
+            this.renderer.camera.position.y, // Mantieni l'altezza corrente (diversa per mobile/desktop)
+            targetZ + this.renderer.camera.position.z * 0.8 // Offset basato sulla posizione Z della camera
         );
+        
         this.renderer.camera.position.lerp(targetCamPos, deltaTime * 2);
-        this.renderer.camera.lookAt(headPos.x * 0.5, 0, headPos.z * 0.5);
+        this.renderer.camera.lookAt(headPos.x * 0.3, 0, headPos.z * 0.3);
     }
     
     loop(time) {
