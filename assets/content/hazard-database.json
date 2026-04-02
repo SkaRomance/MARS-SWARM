@@ -1,0 +1,292 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "sector": "Industria/Manifattura",
+    "normative_reference": "D.Lgs. 81/08",
+    "created_by": "Safety Content Agent",
+    "last_updated": "2026-04-02"
+  },
+  "hazards": [
+    {
+      "id": "trailing-cables",
+      "name": "Cavi Elettrici Trailing",
+      "short_name": "Cavi Trailing",
+      "icon": "⚡",
+      "color": "#FF6B35",
+      "model": "cables.gltf",
+      "danger": {
+        "title": "Rischio di Inciampo e Folgorazione",
+        "description": "Cavi elettrici posati a pavimento o non correttamente canalizzati rappresentano un pericolo di inciampo. Se danneggiati, espongono a rischio di folgorazione.",
+        "severity": "high"
+      },
+      "normative": {
+        "reference": "D.Lgs. 81/08",
+        "article": "Art. 71 - Installazioni elettriche",
+        "text": "Le installazioni elettriche devono essere progettate, realizzate e mantenute in modo da prevenire i pericoli di natura elettrica, meccanica, termica o da altre cause."
+      },
+      "prevention": [
+        "Utilizzare canaline protettive o passacavi per il transito dei cavi",
+        "Verificare periodicamente l'integrità del rivestimento dei cavi",
+        "Evitare il passaggio di cavi in aree di transito pedonale",
+        "Utilizzare tappeti isolanti in aree di lavoro elettrico",
+        "Segnalare immediatamente cavi danneggiati all'ufficio tecnico"
+      ],
+      "gameplay": {
+        "spawn_rate": "common",
+        "visual_indicators": ["Giallo/nero segnaletica", "Scintille animate"],
+        "audio_cue": "electric_buzz.wav"
+      }
+    },
+    {
+      "id": "oil-spill",
+      "name": "Pozzanghera Olio/Sostanze",
+      "short_name": "Sversamento",
+      "icon": "🛢️",
+      "color": "#8B4513",
+      "model": "spill.gltf",
+      "danger": {
+        "title": "Rischio di Scivolamento",
+        "description": "Sversamenti di oli, lubrificanti o altre sostanze rendono il pavimento scivoloso. Rappresentano una delle principali cause di infortuni sul lavoro.",
+        "severity": "medium"
+      },
+      "normative": {
+        "reference": "D.Lgs. 81/08",
+        "article": "Art. 29 - Luoghi di lavoro",
+        "text": "I luoghi di lavoro devono essere organizzati in modo da consentire la circolazione in condizioni di sicurezza, prevenendo i rischi di scivolamento e inciampo."
+      },
+      "prevention": [
+        "Pulire immediatamente qualsiasi sversamento",
+        "Utilizzare segnaletica di pericolo 'Pavimento Bagnato'",
+        "Indossare scarpe antinfortunistiche con suola antiscivolo",
+        "Utilizzare assorbenti industriali per liquidi oleosi",
+        "Reportare perdite da macchinari alla manutenzione"
+      ],
+      "gameplay": {
+        "spawn_rate": "common",
+        "visual_indicators": ["Riflesso lucido", "Bordo scuro"],
+        "audio_cue": "slime_splash.wav"
+      }
+    },
+    {
+      "id": "moving-machinery",
+      "name": "Macchinario in Movimento",
+      "short_name": "Macchinario",
+      "icon": "🤖",
+      "color": "#FF0000",
+      "model": "robot_arm.gltf",
+      "danger": {
+        "title": "Rischio di Urto e Tranciamento",
+        "description": "Bracci robotici, nastri trasportatori e macchinari automatizzati possono colpire o intrappolare i lavoratori nelle loro zone di movimento.",
+        "severity": "critical"
+      },
+      "normative": {
+        "reference": "D.Lgs. 81/08",
+        "article": "Art. 70 - Attrezzature di lavoro",
+        "text": "Le attrezzature devono essere munite di dispositivi di protezione collettiva efficaci e, ove necessario, di dispositivi di protezione individuale."
+      },
+      "prevention": [
+        "Rispettare le linee di delimitazione delle zone di sicurezza",
+        "Attendere il completo arresto del macchinario prima di intervenire",
+        "Utilizzare dispositivi LOTO (Lock Out Tag Out) durante la manutenzione",
+        "Indossare DPI specifici: guanti antitaglio, occhiali protettivi",
+        "Seguire procedure di accesso autorizzato alle zone robotizzate"
+      ],
+      "gameplay": {
+        "spawn_rate": "rare",
+        "visual_indicators": ["Luce rossa pulsante", "Zone delimitate", "Movimento ciclico"],
+        "audio_cue": "mechanical_arm.wav",
+        "movement": "animated_rotation"
+      }
+    },
+    {
+      "id": "falling-objects",
+      "name": "Stoccaggio Improprio",
+      "short_name": "Caduta Merci",
+      "icon": "📦",
+      "color": "#FFA500",
+      "model": "boxes_stack.gltf",
+      "danger": {
+        "title": "Rischio di Caduta Oggetti",
+        "description": "Scatole, pallet o materiali stoccati in modo instabile possono cadere causando traumi. Stoccaggio oltre l'altezza massima prevista aumenta il rischio.",
+        "severity": "high"
+      },
+      "normative": {
+        "reference": "D.Lgs. 81/08",
+        "article": "Art. 48 - Magazzini",
+        "text": "I magazzini devono essere organizzati in modo da garantire la stabilità degli oggetti stoccati e prevenire i rischi di caduta."
+      },
+      "prevention": [
+        "Rispettare i carichi massimi degli scaffali",
+        "Posizionare carichi pesati sugli scaffali bassi",
+        "Utilizzare imballaggi idonei e integri",
+        "Non superare l'altezza massima di stoccaggio",
+        "Indossare casco in aree di movimentazione merci"
+      ],
+      "gameplay": {
+        "spawn_rate": "uncommon",
+        "visual_indicators": ["Scatole traballanti", "Nastro giallo/nero"],
+        "audio_cue": "box_creak.wav"
+      }
+    },
+    {
+      "id": "step-ladder",
+      "name": "Scala/Cavalletto",
+      "short_name": "Altezza",
+      "icon": "🪜",
+      "color": "#9370DB",
+      "model": "ladder.gltf",
+      "danger": {
+        "title": "Rischio di Caduta dall'Alto",
+        "description": "Scale, cavalletti e piattaforme utilizzate impropriamente o senza ancoraggio possono ribaltarsi causando cadute anche mortali.",
+        "severity": "high"
+      },
+      "normative": {
+        "reference": "D.Lgs. 81/08",
+        "article": "Art. 118 - Lavori in quota",
+        "text": "I lavori in quota devono essere eseguiti utilizzando attrezzature idonee e previa formazione specifica dei lavoratori."
+      },
+      "prevention": [
+        "Verificare la stabilità e l'integrità della scala prima dell'uso",
+        "Mantenere sempre 3 punti di appoggio (2 mani + 1 piede o viceversa)",
+        "Non superare il gradino segnalato come massimo",
+        "Utilizzare imbracatura di sicurezza per lavori sopra 2 metri",
+        "Posizionare la scala su superficie piana e stabile"
+      ],
+      "gameplay": {
+        "spawn_rate": "uncommon",
+        "visual_indicators": ["Scala aperta", "Cartello 'Attenzione Altezza'"],
+        "audio_cue": "metal_clang.wav"
+      }
+    },
+    {
+      "id": "chemical-container",
+      "name": "Contenitore Chimico Aperto",
+      "short_name": "Sostanze Chimiche",
+      "icon": "☠️",
+      "color": "#00FF00",
+      "model": "chemical_barrel.gltf",
+      "danger": {
+        "title": "Rischio di Esposizione a Sostanze Pericolose",
+        "description": "Contenitori di sostanze chimiche non chiusi correttamente o danneggiati possono rilasciare vapori tossici, infiammabili o corrosivi.",
+        "severity": "critical"
+      },
+      "normative": {
+        "reference": "D.Lgs. 81/08",
+        "article": "Art. 224 - Agenti chimici",
+        "text": "Il datore di lavoro deve valutare i rischi per la sicurezza e la salute derivanti dalla presenza di agenti chimici e adottare misure di prevenzione."
+      },
+      "prevention": [
+        "Verificare l'integrità dei contenitori prima dell'uso",
+        "Utilizzare sempre DPI specifici: guanti chimici, occhiali, respiratore",
+        "Leggere etichette e schede di sicurezza (SDS)",
+        "Stoccare in aree ventilate e lontano da fonti di calore",
+        "Segnalare immediatamente perdite o fumi anomali"
+      ],
+      "gameplay": {
+        "spawn_rate": "rare",
+        "visual_indicators": ["Simbolo pericolo chimico", "Vapori verdi", "Fusto danneggiato"],
+        "audio_cue": "gas_hiss.wav",
+        "particle_effect": "green_smoke"
+      }
+    },
+    {
+      "id": "forklift-zone",
+      "name": "Zona Traffico Industriale",
+      "short_name": "Carrello Elevatore",
+      "icon": "🚧",
+      "color": "#FFD700",
+      "model": "forklift_warning.gltf",
+      "danger": {
+        "title": "Rischio di Investimento",
+        "description": "Carrelli elevatori e mezzi industriali in movimento possono investire pedoni in aree di incrocio o con visibilità limitata.",
+        "severity": "high"
+      },
+      "normative": {
+        "reference": "D.Lgs. 81/08",
+        "article": "Art. 53 - Segnaletica di sicurezza",
+        "text": "La segnaletica di sicurezza deve indicare rischi specifici e delimitare zone di pericolo come aree di transito mezzi."
+      },
+      "prevention": [
+        "Rispettare i percorsi pedonali demarcati",
+        "Mantenere contatto visivo con il conducente del muletto",
+        "Non attraversare davanti a carrelli elevatori in movimento",
+        "Indossare giubbotto alta visibilità in aree di traffico",
+        "Segnalare propria presenza con contatto visivo o acustico"
+      ],
+      "gameplay": {
+        "spawn_rate": "common",
+        "visual_indicators": ["Strisce pedonali gialle", "Cartello muletto", "Luci lampeggianti"],
+        "audio_cue": "forklift_beep.wav"
+      }
+    },
+    {
+      "id": "compressed-gas",
+      "name": "Bombole Gas Compresso",
+      "short_name": "Gas Compressi",
+      "icon": "🫙",
+      "color": "#4169E1",
+      "model": "gas_cylinder.gltf",
+      "danger": {
+        "title": "Rischio di Esplosione o Proiezione",
+        "description": "Bombole di gas compresso non ancorate o cadute possono proiettarsi violentemente o perdere gas tossico/infiammabile.",
+        "severity": "high"
+      },
+      "normative": {
+        "reference": "D.Lgs. 81/08",
+        "article": "Art. 75 - Attrezzature a pressione",
+        "text": "Le attrezzature a pressione devono essere installate, utilizzate e mantenute conformemente alle istruzioni del fabbricante."
+      },
+      "prevention": [
+        "Ancorare sempre le bombole con catene o supporti",
+        "Trasportare con carrelli dedicati, mai rotolando",
+        "Utilizzare tappi protettivi quando non in uso",
+        "Stoccare in area ventilata, lontano da fonti di calore",
+        "Verificare l'integrità delle valvole periodicamente"
+      ],
+      "gameplay": {
+        "spawn_rate": "uncommon",
+        "visual_indicators": ["Bombola blu", "Valvola rossa", "Cartello 'Pericolo'"],
+        "audio_cue": "gas_leak.wav"
+      }
+    }
+  ],
+  "safety_tips": [
+    {
+      "category": "DPI",
+      "tips": [
+        "Il casco protettivo deve essere indossato in tutte le aree operative",
+        "Le scarpe antinfortunistiche devono avere puntale e suola antiscivolo",
+        "Indossare sempre occhiali protettivi durante operazioni di macchina"
+      ]
+    },
+    {
+      "category": "Emergenza",
+      "tips": [
+        "Conoscere la posizione dei punti di primo soccorso e defibrillatori",
+        "Memorizzare i numeri di emergenza interni",
+        "Partecipare attivamente alle esercitazioni di evacuazione"
+      ]
+    },
+    {
+      "category": "Prevenzione",
+      "tips": [
+        "Segnalare immediatamente situazioni di pericolo al proprio responsabile",
+        "Non bypassare mai i dispositivi di sicurezza delle macchine",
+        "Mantenere pulite e ordinate le proprie postazioni di lavoro"
+      ]
+    }
+  ],
+  "game_config": {
+    "hazard_spawn_weights": {
+      "common": 0.35,
+      "uncommon": 0.25,
+      "rare": 0.15,
+      "critical": 0.10
+    },
+    "difficulty_progression": {
+      "easy": { "spawn_interval": 3000, "max_hazards": 3 },
+      "medium": { "spawn_interval": 2500, "max_hazards": 5 },
+      "hard": { "spawn_interval": 2000, "max_hazards": 7 }
+    }
+  }
+}

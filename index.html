@@ -39,7 +39,19 @@
             <div class="menu-panel">
                 <h1 class="game-title">SWARM</h1>
                 <p class="subtitle">Evolution of Snake</p>
-                <button id="btn-start" class="menu-btn primary">START GAME</button>
+                <div class="mode-selector">
+                    <p class="mode-label">SELEZIONA MODALITÀ</p>
+                    <button id="btn-start-classic" class="menu-btn primary mode-btn">
+                        <span class="mode-icon">👁️</span>
+                        <span class="mode-text">CLASSICA</span>
+                        <span class="mode-desc">Vista dall'alto</span>
+                    </button>
+                    <button id="btn-start-pov" class="menu-btn primary mode-btn pov-btn">
+                        <span class="mode-icon">🎮</span>
+                        <span class="mode-text">POV SAFETY</span>
+                        <span class="mode-desc">Prima persona + Formazione H&amp;S</span>
+                    </button>
+                </div>
                 <button id="btn-highscores" class="menu-btn secondary">HIGH SCORES</button>
                 <div class="controls-hint">
                     <p>⌨️ WASD o Frecce • SPAZIO per Pausa</p>
@@ -63,7 +75,44 @@
             </div>
         </div>
 
-        <!-- Game Over Menu -->
+        <!-- Game Over Safety Menu (Educational) -->
+        <div id="game-over-safety" class="overlay">
+            <div class="menu-panel safety-panel">
+                <div class="incident-badge">⚠️ INCIDENTE!</div>
+                <h2 class="safety-title" id="safety-hazard-name">Pericolo</h2>
+                
+                <div class="safety-content">
+                    <div class="safety-icon" id="safety-icon">⚡</div>
+                    
+                    <div class="safety-section">
+                        <h3>Rischio</h3>
+                        <p id="safety-danger">Descrizione del pericolo...</p>
+                    </div>
+                    
+                    <div class="safety-section">
+                        <h3>📋 Normativa di Riferimento</h3>
+                        <p class="normative-ref" id="safety-normative">D.Lgs. 81/08</p>
+                        <p id="safety-article">Art. XX</p>
+                    </div>
+                    
+                    <div class="safety-section">
+                        <h3>✅ Azioni Preventive</h3>
+                        <ul id="safety-prevention">
+                            <li>Azione 1</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="safety-score">
+                    <span>Punteggio Safety: <strong id="safety-score-value">0</strong></span>
+                </div>
+                
+                <button id="btn-restart-safety" class="menu-btn primary">RIPROVA</button>
+                <button id="btn-learn-more" class="menu-btn secondary">📚 APPROFONDISCI</button>
+            </div>
+        </div>
+
+        <!-- Game Over Menu (Classic) -->
         <div id="game-over" class="overlay">
             <div class="menu-panel">
                 <h2 class="menu-title">GAME OVER</h2>

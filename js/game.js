@@ -2,6 +2,8 @@ import { Renderer } from './renderer.js';
 import { Worm } from './worm.js';
 import { Fruit } from './fruit.js';
 import { ParticleSystem } from './particles.js';
+import { PovCamera } from './pov-camera.js';
+import { HazardManager } from './hazards.js';
 
 export class Game {
     constructor() {
@@ -10,6 +12,8 @@ export class Game {
         this.worm = null;
         this.fruit = null;
         this.particles = null;
+        this.povCamera = null;
+        this.hazardManager = null;
         
         this.score = 0;
         this.highScore = parseInt(localStorage.getItem('swarm_highscore')) || 0;
@@ -17,6 +21,9 @@ export class Game {
         this.isGameOver = false;
         this.isPaused = false;
         this.lastTime = 0;
+        
+        // Game mode: 'classic' or 'pov'
+        this.gameMode = localStorage.getItem('swarm_game_mode') || 'classic';
         
         // Saved game data
         this.savedGame = null;
@@ -30,8 +37,17 @@ export class Game {
             pauseScore: document.getElementById('pause-score-value'),
             mainMenu: document.getElementById('main-menu'),
             gameOver: document.getElementById('game-over'),
+            gameOverSafety: document.getElementById('game-over-safety'),
             pauseMenu: document.getElementById('pause-menu'),
-            touchHint: document.getElementById('touch-hint')
+            touchHint: document.getElementById('touch-hint'),
+            // Safety screen elements
+            safetyHazardName: document.getElementById('safety-hazard-name'),
+            safetyIcon: document.getElementById('safety-icon'),
+            safetyDanger: document.getElementById('safety-danger'),
+            safetyNormative: document.getElementById('safety-normative'),
+            safetyArticle: document.getElementById('safety-article'),
+            safetyPrevention: document.getElementById('safety-prevention'),
+            safetyScoreValue: document.getElementById('safety-score-value')
         };
         
         // Input state
@@ -49,6 +65,9 @@ export class Game {
         this.worm = new Worm(this.renderer.scene);
         this.fruit = new Fruit(this.renderer.scene, this.renderer.boundarySize);
         this.particles = new ParticleSystem(this.renderer.scene);
+        
+        // Initialize hazard manager (solo per modalità POV/Safety)
+        this.hazardManager = new HazardManager(this.renderer.scene, this.renderer.boundarySize);
         
         // Update UI
         this.ui.highScore.textContent = this.highScore;
@@ -75,7 +94,15 @@ export class Game {
         this.setupSwipeGestures();
         
         // Menu buttons
-        document.getElementById('btn-start').addEventListener('click', () => this.start());
+        // Mode selection buttons
+        document.getElementById('btn-start-classic').addEventListener('click', () => {
+            this.setGameMode('classic');
+            this.start();
+        });
+        document.getElementById('btn-start-pov').addEventListener('click', () => {
+            this.setGameMode('pov');
+            this.start();
+        });
         document.getElementById('btn-restart').addEventListener('click', () => this.restart());
         document.getElementById('btn-highscores').addEventListener('click', () => this.showHighScores());
         document.getElementById('btn-pause').addEventListener('click', () => this.togglePause());
@@ -84,6 +111,12 @@ export class Game {
         document.getElementById('btn-load').addEventListener('click', () => this.loadGame());
         document.getElementById('btn-quit').addEventListener('click', () => this.quitToMenu());
         document.getElementById('btn-save-gameover').addEventListener('click', () => this.saveScore());
+        
+        // Safety game over buttons
+        document.getElementById('btn-restart-safety').addEventListener('click', () => this.restart());
+        document.getElementById('btn-learn-more').addEventListener('click', () => {
+            window.open('https://www.inail.it/cs/internet/comunicazione/pubblicazioni/catalogo-generale.html', '_blank');
+        });
         
         // Prevent context menu
         window.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -219,6 +252,19 @@ export class Game {
         }
     }
     
+    setGameMode(mode) {
+        this.gameMode = mode;
+        localStorage.setItem('swarm_game_mode', mode);
+        console.log(`[Game] Modalità selezionata: ${mode.toUpperCase()}`);
+        
+        // Inizializza POV camera se necessario
+        if (mode === 'pov') {
+            if (!this.povCamera) {
+                this.povCamera = new PovCamera(this.renderer.camera);
+            }
+        }
+    }
+    
     start() {
         this.isPlaying = true;
         this.isGameOver = false;
@@ -244,6 +290,11 @@ export class Game {
         // Respawn fruit
         this.fruit.remove();
         this.fruit = new Fruit(this.renderer.scene, this.renderer.boundarySize);
+        
+        // Clear hazards (solo modalità POV)
+        if (this.hazardManager) {
+            this.hazardManager.clear();
+        }
         
         // Clear particles
         this.particles.clear();
@@ -448,6 +499,7 @@ export class Game {
         this.isGameOver = false;
         this.ui.pauseMenu.classList.remove('active');
         this.ui.gameOver.classList.remove('active');
+        this.ui.gameOverSafety.classList.remove('active');
         this.ui.mainMenu.classList.add('active');
         
         // Hide touch hint
@@ -507,6 +559,72 @@ export class Game {
         );
     }
     
+    gameOverSafety(hazardData) {
+        this.isPlaying = false;
+        this.isGameOver = true;
+        
+        // Update high score
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('swarm_highscore', this.highScore);
+            this.ui.highScore.textContent = this.highScore;
+        }
+        
+        // Populate safety screen with hazard data
+        if (this.ui.safetyHazardName) {
+            this.ui.safetyHazardName.textContent = hazardData.name;
+        }
+        if (this.ui.safetyIcon) {
+            this.ui.safetyIcon.textContent = hazardData.icon || '⚠️';
+        }
+        if (this.ui.safetyDanger) {
+            this.ui.safetyDanger.textContent = hazardData.danger?.description || 'Pericolo non specificato';
+        }
+        if (this.ui.safetyNormative) {
+            this.ui.safetyNormative.textContent = hazardData.normative?.reference || 'D.Lgs. 81/08';
+        }
+        if (this.ui.safetyArticle) {
+            this.ui.safetyArticle.textContent = hazardData.normative?.article || '';
+        }
+        if (this.ui.safetyPrevention) {
+            const preventionList = hazardData.prevention || ['Segnalare il pericolo al responsabile'];
+            this.ui.safetyPrevention.innerHTML = preventionList.map(p => `<li>${p}</li>`).join('');
+        }
+        if (this.ui.safetyScoreValue) {
+            this.ui.safetyScoreValue.textContent = this.score;
+        }
+        
+        // Show safety game over screen
+        this.ui.gameOverSafety.classList.add('active');
+        
+        // Hide touch hint
+        if (this.ui.touchHint) {
+            this.ui.touchHint.classList.remove('visible');
+        }
+        
+        // Explosion effect
+        this.particles.createExplosionEffect(
+            this.worm.getHeadPosition(),
+            0xff4757
+        );
+        
+        // Log incident for analytics
+        this.logIncident(hazardData);
+    }
+    
+    logIncident(hazardData) {
+        // Local analytics for safety incidents
+        const incidents = JSON.parse(localStorage.getItem('swarm_safety_incidents') || '[]');
+        incidents.push({
+            hazardId: hazardData.id,
+            hazardName: hazardData.name,
+            timestamp: new Date().toISOString(),
+            score: this.score,
+            gameMode: this.gameMode
+        });
+        localStorage.setItem('swarm_safety_incidents', JSON.stringify(incidents.slice(-50))); // Keep last 50
+    }
+    
     checkFruitCollision() {
         const headPos = this.worm.getHeadPosition();
         const fruitPos = this.fruit.getPosition();
@@ -549,6 +667,20 @@ export class Game {
         // Check collisions
         this.checkFruitCollision();
         
+        // Update hazards (solo modalità POV)
+        if (this.gameMode === 'pov' && this.hazardManager) {
+            const headPos = this.worm.getHeadPosition();
+            const currentTime = performance.now();
+            this.hazardManager.update(deltaTime * 1000, currentTime, headPos, this.worm.segments);
+            
+            // Check hazard collision
+            const collision = this.hazardManager.checkCollision(headPos);
+            if (collision) {
+                this.gameOverSafety(collision);
+                return;
+            }
+        }
+        
         // Update particles
         this.particles.update();
         
@@ -560,20 +692,27 @@ export class Game {
             );
         }
         
-        // Camera: COMPLETAMENTE STATICA su mobile per comandi swipe coerenti
-        // Nessun movimento, nessun lerp, nessun offset
-        if (!this.renderer.isMobile) {
-            // Solo su desktop: camera leggermente dinamica
+        // Camera: gestione in base alla modalità
+        if (this.gameMode === 'pov' && this.povCamera) {
+            // Modalità POV: camera in prima persona
             const headPos = this.worm.getHeadPosition();
-            const targetCamPos = new THREE.Vector3(
-                headPos.x * 0.3,
-                25,
-                headPos.z * 0.3 + 25
-            );
-            this.renderer.camera.position.lerp(targetCamPos, deltaTime * 2);
-            this.renderer.camera.lookAt(headPos.x * 0.5, 0, headPos.z * 0.5);
+            const direction = this.worm.direction;
+            this.povCamera.update(headPos, direction, deltaTime);
+        } else {
+            // Modalità Classic: camera dall'alto
+            if (!this.renderer.isMobile) {
+                // Desktop: camera leggermente dinamica
+                const headPos = this.worm.getHeadPosition();
+                const targetCamPos = new THREE.Vector3(
+                    headPos.x * 0.3,
+                    25,
+                    headPos.z * 0.3 + 25
+                );
+                this.renderer.camera.position.lerp(targetCamPos, deltaTime * 2);
+                this.renderer.camera.lookAt(headPos.x * 0.5, 0, headPos.z * 0.5);
+            }
+            // Mobile: camera statica impostata in initCamera
         }
-        // Su mobile: la camera è completamente statica, impostata in initCamera
     }
     
     loop(time) {
