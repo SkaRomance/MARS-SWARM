@@ -12,7 +12,7 @@ export class HazardManager {
         this.hazardData = null;
         this.maxHazards = 5;
         this.spawnInterval = 3000; // ms
-        this.lastSpawn = 0;
+        this.lastSpawn = performance.now(); // Inizializza con tempo attuale per evitare spawn immediato
         this.difficultyLevel = 1;
         
         // Geometrie/materiali cache
@@ -21,6 +21,14 @@ export class HazardManager {
         
         this.loadHazardData();
         this.initGeometries();
+    }
+
+    /**
+     * Resetta il timer di spawn quando il gioco inizia
+     */
+    start() {
+        this.lastSpawn = performance.now();
+        this.clear(); // Pulisce eventuali hazard residui
     }
 
     /**

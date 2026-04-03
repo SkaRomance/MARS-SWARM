@@ -282,9 +282,9 @@ export class Game {
         this.fruit.remove();
         this.fruit = new Fruit(this.renderer.scene, this.renderer.boundarySize);
         
-        // Clear hazards (solo modalità POV)
+        // Start hazard manager (resetta timer di spawn)
         if (this.hazardManager) {
-            this.hazardManager.clear();
+            this.hazardManager.start();
         }
         
         // Clear particles
