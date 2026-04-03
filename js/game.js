@@ -2,7 +2,6 @@ import { Renderer } from './renderer.js';
 import { Worm } from './worm.js';
 import { Fruit } from './fruit.js';
 import { ParticleSystem } from './particles.js';
-import { PovCamera } from './pov-camera.js';
 import { HazardManager } from './hazards.js';
 import { getAnalytics } from './analytics.js';
 
@@ -13,7 +12,6 @@ export class Game {
         this.worm = null;
         this.fruit = null;
         this.particles = null;
-        this.povCamera = null;
         this.hazardManager = null;
         this.analytics = getAnalytics();
         
@@ -23,9 +21,6 @@ export class Game {
         this.isGameOver = false;
         this.isPaused = false;
         this.lastTime = 0;
-        
-        // Game mode: 'classic' or 'pov'
-        this.gameMode = localStorage.getItem('swarm_game_mode') || 'classic';
         
         // Saved game data
         this.savedGame = null;
@@ -50,11 +45,6 @@ export class Game {
             safetyArticle: document.getElementById('safety-article'),
             safetyPrevention: document.getElementById('safety-prevention'),
             safetyScoreValue: document.getElementById('safety-score-value'),
-            // POV mobile UI
-            povIndicator: document.getElementById('pov-indicator'),
-            directionArrow: document.getElementById('direction-arrow'),
-            povRadar: document.getElementById('pov-radar'),
-            radarFruit: document.getElementById('radar-fruit'),
             // Stats panel
             statsPanel: document.getElementById('stats-panel'),
             statSessions: document.getElementById('stat-sessions'),
@@ -108,15 +98,7 @@ export class Game {
         this.setupSwipeGestures();
         
         // Menu buttons
-        // Mode selection buttons
-        document.getElementById('btn-start-classic').addEventListener('click', () => {
-            this.setGameMode('classic');
-            this.start();
-        });
-        document.getElementById('btn-start-pov').addEventListener('click', () => {
-            this.setGameMode('pov');
-            this.start();
-        });
+        document.getElementById('btn-start').addEventListener('click', () => this.start());
         document.getElementById('btn-restart').addEventListener('click', () => this.restart());
         document.getElementById('btn-highscores').addEventListener('click', () => this.showHighScores());
         document.getElementById('btn-stats').addEventListener('click', () => this.showStats());
@@ -270,19 +252,6 @@ export class Game {
         }
     }
     
-    setGameMode(mode) {
-        this.gameMode = mode;
-        localStorage.setItem('swarm_game_mode', mode);
-        console.log(`[Game] Modalità selezionata: ${mode.toUpperCase()}`);
-        
-        // Inizializza POV camera se necessario
-        if (mode === 'pov') {
-            if (!this.povCamera) {
-                this.povCamera = new PovCamera(this.renderer.camera);
-            }
-        }
-    }
-    
     start() {
         this.isPlaying = true;
         this.isGameOver = false;
@@ -304,15 +273,6 @@ export class Game {
                     this.ui.touchHint.classList.remove('visible');
                 }
             }, 4000);
-        }
-        
-        // Show POV UI elements (solo modalità POV su mobile)
-        if (this.gameMode === 'pov' && this.renderer.isMobile) {
-            if (this.ui.povIndicator) this.ui.povIndicator.classList.remove('hidden');
-            if (this.ui.povRadar) this.ui.povRadar.classList.remove('hidden');
-        } else {
-            if (this.ui.povIndicator) this.ui.povIndicator.classList.add('hidden');
-            if (this.ui.povRadar) this.ui.povRadar.classList.add('hidden');
         }
         
         // Reset worm
@@ -626,7 +586,7 @@ export class Game {
             0xff4757
         );
         
-        // End analytics session
+        // End analytics session (nessun incidente specifico)
         this.analytics.endSession(this.score);
     }
     
@@ -668,12 +628,10 @@ export class Game {
         // Show safety game over screen
         this.ui.gameOverSafety.classList.add('active');
         
-        // Hide touch hint and POV UI
+        // Hide touch hint
         if (this.ui.touchHint) {
             this.ui.touchHint.classList.remove('visible');
         }
-        if (this.ui.povIndicator) this.ui.povIndicator.classList.add('hidden');
-        if (this.ui.povRadar) this.ui.povRadar.classList.add('hidden');
         
         // Explosion effect
         this.particles.createExplosionEffect(
@@ -733,8 +691,8 @@ export class Game {
         // Check collisions
         this.checkFruitCollision();
         
-        // Update hazards (solo modalità POV)
-        if (this.gameMode === 'pov' && this.hazardManager) {
+        // Update hazards (sempre attivi in modalità Safety)
+        if (this.hazardManager) {
             const headPos = this.worm.getHeadPosition();
             const currentTime = performance.now();
             this.hazardManager.update(deltaTime * 1000, currentTime, headPos, this.worm.segments);
@@ -758,66 +716,19 @@ export class Game {
             );
         }
         
-        // Camera: gestione in base alla modalità
-        if (this.gameMode === 'pov' && this.povCamera) {
-            // Modalità POV: camera in prima persona
+        // Camera: vista dall'alto
+        if (!this.renderer.isMobile) {
+            // Desktop: camera leggermente dinamica
             const headPos = this.worm.getHeadPosition();
-            const direction = this.worm.direction;
-            this.povCamera.update(headPos, direction, deltaTime);
-        } else {
-            // Modalità Classic: camera dall'alto
-            if (!this.renderer.isMobile) {
-                // Desktop: camera leggermente dinamica
-                const headPos = this.worm.getHeadPosition();
-                const targetCamPos = new THREE.Vector3(
-                    headPos.x * 0.3,
-                    25,
-                    headPos.z * 0.3 + 25
-                );
-                this.renderer.camera.position.lerp(targetCamPos, deltaTime * 2);
-                this.renderer.camera.lookAt(headPos.x * 0.5, 0, headPos.z * 0.5);
-            }
-            // Mobile: camera statica impostata in initCamera
+            const targetCamPos = new THREE.Vector3(
+                headPos.x * 0.3,
+                25,
+                headPos.z * 0.3 + 25
+            );
+            this.renderer.camera.position.lerp(targetCamPos, deltaTime * 2);
+            this.renderer.camera.lookAt(headPos.x * 0.5, 0, headPos.z * 0.5);
         }
-        
-        // Update POV UI indicators (mobile)
-        if (this.gameMode === 'pov') {
-            this.updatePovUI();
-        }
-    }
-    
-    updatePovUI() {
-        if (!this.renderer.isMobile) return;
-        
-        const headPos = this.worm.getHeadPosition();
-        const direction = this.worm.direction;
-        
-        // Update direction arrow
-        if (this.ui.directionArrow) {
-            const angle = Math.atan2(direction.x, direction.z) * (180 / Math.PI);
-            this.ui.directionArrow.style.transform = `rotate(${angle}deg)`;
-        }
-        
-        // Update radar
-        if (this.ui.radarFruit && this.fruit) {
-            const fruitPos = this.fruit.getPosition();
-            const dx = fruitPos.x - headPos.x;
-            const dz = fruitPos.z - headPos.z;
-            const distance = Math.sqrt(dx * dx + dz * dz);
-            
-            if (distance < 30) {
-                // Scala per radar (40px = 30 unità)
-                const scale = 40 / 30;
-                const radarX = 40 + dx * scale;
-                const radarY = 40 + dz * scale;
-                
-                this.ui.radarFruit.style.display = 'block';
-                this.ui.radarFruit.style.left = radarX + 'px';
-                this.ui.radarFruit.style.top = radarY + 'px';
-            } else {
-                this.ui.radarFruit.style.display = 'none';
-            }
-        }
+        // Mobile: camera statica impostata in initCamera
     }
     
     loop(time) {
