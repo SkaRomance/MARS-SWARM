@@ -754,8 +754,8 @@ export class Game {
             // Particle effect
             this.particles.createEatEffect(fruitPos, this.fruit.colorScheme.main);
             
-            // Respawn fruit - passa posizione worm per evitare spawn troppo vicino
-            this.fruit.spawn(headPos);
+            // Respawn fruit - lontano da worm e hazard
+            this.fruit.spawn(headPos, this.hazardManager ? this.hazardManager.hazards : []);
             
             return true;
         }

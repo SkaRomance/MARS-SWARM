@@ -20,14 +20,15 @@ export class Fruit {
         this.spawn();
     }
     
-    spawn(wormPosition = null) {
+    spawn(wormPosition = null, hazards = []) {
         // Remove old if exists
         this.remove();
         
         // Random position within boundary
-        const range = this.boundary - 3;  // Margine maggiore dai bordi
+        const range = this.boundary - 3;
         let pos;
         let attempts = 0;
+        let tooCloseToHazard = false;
         
         do {
             pos = new THREE.Vector3(
@@ -36,8 +37,17 @@ export class Fruit {
                 (Math.random() - 0.5) * 2 * range
             );
             attempts++;
-            // Se wormPosition è fornito, assicurati che il frutto non spawni troppo vicino
-        } while (wormPosition && pos.distanceTo(wormPosition) < 3 && attempts < 10);
+            
+            // Check distanza dai hazard (minimo 4 unità)
+            tooCloseToHazard = false;
+            for (const hazard of hazards) {
+                if (hazard.position && pos.distanceTo(hazard.position) < 4) {
+                    tooCloseToHazard = true;
+                    break;
+                }
+            }
+            
+        } while ((wormPosition && pos.distanceTo(wormPosition) < 3 || tooCloseToHazard) && attempts < 20);
         
         this.position = pos;
         

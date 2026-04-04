@@ -42,7 +42,10 @@ export class HazardManager {
      * Update chiamato ogni frame
      */
     update(deltaTime, wormPosition, wormSegments) {
-        // Incrementa timer
+        // Rimuovi hazard scaduti
+        this.removeExpiredHazards();
+        
+        // Incrementa timer spawn
         this.timeSinceLastSpawn += deltaTime;
         
         // Spawn se necessario
@@ -55,6 +58,39 @@ export class HazardManager {
         
         // Aggiorna animazioni icone
         this.updateFloatingIcons(deltaTime);
+    }
+    
+    /**
+     * Rimuovi hazard con lifetime scaduto
+     */
+    removeExpiredHazards() {
+        const now = performance.now();
+        for (let i = this.hazards.length - 1; i >= 0; i--) {
+            const hazard = this.hazards[i];
+            const age = now - hazard.userData.createdAt;
+            const lifetime = hazard.userData.lifetime;
+            
+            if (age > lifetime) {
+                this.removeHazard(i);
+            }
+        }
+    }
+    
+    /**
+     * Rimuovi singolo hazard
+     */
+    removeHazard(index) {
+        if (index < 0 || index >= this.hazards.length) return;
+        
+        const hazard = this.hazards[index];
+        
+        // Rimuovi icona e anello
+        if (hazard.userData.groundRing) {
+            this.scene.remove(hazard.userData.groundRing);
+        }
+        
+        this.scene.remove(hazard);
+        this.hazards.splice(index, 1);
     }
     
     /**
@@ -87,11 +123,13 @@ export class HazardManager {
         mesh.position.y = 0.5;
         mesh.rotation.y = Math.random() * Math.PI * 2;
         
-        // Dati
+        // Dati con lifetime
         mesh.userData = {
             type: 'hazard',
             hazardId: hazardType.id,
-            hazardData: hazardType
+            hazardData: hazardType,
+            createdAt: performance.now(),
+            lifetime: 10000 + Math.random() * 5000 // 10-15 secondi
         };
         
         // Aggiungi icona fluttuante
@@ -104,7 +142,10 @@ export class HazardManager {
         this.scene.add(mesh);
         this.hazards.push(mesh);
         
-        console.log(`[HazardManager] Spawned: ${hazardType.name} (${this.hazards.length}/${this.maxHazards})`);
+        // Solo primo hazard log
+        if (this.hazards.length === 1) {
+            console.log(`[HazardManager] Active: ${hazardType.name}`);
+        }
     }
     
     /**
@@ -204,6 +245,11 @@ export class HazardManager {
      * Aggiorna animazioni icone
      */
     updateFloatingIcons(deltaTime) {
+        // Ottimizzazione: update solo a 30fps invece di 60fps
+        this._iconAnimTimer = (this._iconAnimTimer || 0) + deltaTime;
+        if (this._iconAnimTimer < 33) return; // 30fps
+        this._iconAnimTimer = 0;
+        
         const time = performance.now() * 0.002;
         
         for (const hazard of this.hazards) {
@@ -220,16 +266,25 @@ export class HazardManager {
     checkCollision(wormHeadPosition) {
         if (!wormHeadPosition) return null;
         
+        // Throttle a 60fps
+        const now = performance.now();
+        if (this._lastCollisionTime && now - this._lastCollisionTime < 16) {
+            return this._lastCollisionResult;
+        }
+        this._lastCollisionTime = now;
+        
         const headPos = wormHeadPosition;
         const collisionDistance = 1.2;
         
         for (const hazard of this.hazards) {
             const distance = headPos.distanceTo(hazard.position);
             if (distance < collisionDistance) {
-                return hazard.userData.hazardData;
+                this._lastCollisionResult = hazard.userData.hazardData;
+                return this._lastCollisionResult;
             }
         }
         
+        this._lastCollisionResult = null;
         return null;
     }
     
@@ -238,6 +293,13 @@ export class HazardManager {
      */
     checkProximity(wormHeadPosition) {
         if (!wormHeadPosition) return null;
+        
+        // Throttle a 10 volte al secondo
+        const now = performance.now();
+        if (this._lastProximityTime && now - this._lastProximityTime < 100) {
+            return this._lastProximityResult;
+        }
+        this._lastProximityTime = now;
         
         const warningDistance = 4;
         let nearest = null;
@@ -251,7 +313,8 @@ export class HazardManager {
             }
         }
         
-        return nearest ? { hazard: nearest, distance: nearestDist } : null;
+        this._lastProximityResult = nearest ? { hazard: nearest, distance: nearestDist } : null;
+        return this._lastProximityResult;
     }
     
     /**
