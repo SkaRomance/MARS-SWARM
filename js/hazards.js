@@ -10,16 +10,19 @@ export class HazardManager {
         this.boundarySize = boundarySize;
         this.hazards = []; // Ostacoli attivi
         this.hazardData = null;
-        this.maxHazards = 5;
-        this.spawnInterval = 3000; // ms
-        this.lastSpawn = performance.now(); // Inizializza con tempo attuale per evitare spawn immediato
+        this.maxHazards = 3; // Inizia con pochi ostacoli
+        this.spawnInterval = 5000; // ms - primo spawn dopo 5 secondi
+        this.lastSpawn = performance.now();
         this.difficultyLevel = 1;
+        this.initialSpawnDone = false;
         
         // Geometrie/materiali cache
         this.geometries = new Map();
         this.materials = new Map();
         
-        this.loadHazardData();
+        // Inizializza subito con fallback per avere ostacoli immediati
+        this.hazardData = this.getFallbackData();
+        this.loadHazardData(); // Poi prova a caricare il JSON completo
         this.initGeometries();
     }
 
@@ -29,6 +32,8 @@ export class HazardManager {
     start() {
         this.lastSpawn = performance.now();
         this.clear(); // Pulisce eventuali hazard residui
+        this.initialSpawnDone = false;
+        console.log('[HazardManager] Gioco iniziato - spawn tra 5 secondi');
     }
 
     /**
@@ -49,21 +54,170 @@ export class HazardManager {
 
     /**
      * Dati di fallback se il JSON non viene caricato
+     * Completo con tutti i campi necessari per la schermata Game Over
      */
     getFallbackData() {
         return {
             hazards: [
                 {
                     id: 'trailing-cables',
-                    name: 'Cavi Trailing',
-                    danger: { severity: 'high' },
+                    name: 'Cavi Elettrici Trailing',
+                    short_name: 'Cavi Trailing',
+                    icon: '⚡',
+                    danger: { 
+                        severity: 'high',
+                        description: 'Cavi elettrici posati a pavimento. Rischio di inciampo e folgorazione.'
+                    },
+                    normative: {
+                        reference: 'D.Lgs. 81/08',
+                        article: 'Art. 71 - Installazioni elettriche'
+                    },
+                    prevention: [
+                        'Utilizzare canaline protettive o passacavi',
+                        'Verificare integrità rivestimento cavi',
+                        'Evitare passaggio in aree pedonali'
+                    ],
                     gameplay: { spawn_rate: 'common' }
                 },
                 {
                     id: 'oil-spill',
-                    name: 'Sversamento',
-                    danger: { severity: 'medium' },
+                    name: 'Pozzanghera Olio/Sostanze',
+                    short_name: 'Sversamento',
+                    icon: '🛢️',
+                    danger: { 
+                        severity: 'medium',
+                        description: 'Sversamenti di oli o sostanze chimiche. Rischio di scivolamento.'
+                    },
+                    normative: {
+                        reference: 'D.Lgs. 81/08',
+                        article: 'Art. 29 - Luoghi di lavoro'
+                    },
+                    prevention: [
+                        'Pulire immediatamente qualsiasi sversamento',
+                        'Utilizzare segnaletica "Pavimento Bagnato"',
+                        'Indossare scarpe antiscivolo'
+                    ],
                     gameplay: { spawn_rate: 'common' }
+                },
+                {
+                    id: 'moving-machinery',
+                    name: 'Macchinario in Movimento',
+                    short_name: 'Macchinario',
+                    icon: '🤖',
+                    danger: { 
+                        severity: 'critical',
+                        description: 'Bracci robotici o nastri trasportatori in movimento. Rischio di urto.'
+                    },
+                    normative: {
+                        reference: 'D.Lgs. 81/08',
+                        article: 'Art. 70 - Attrezzature di lavoro'
+                    },
+                    prevention: [
+                        'Rispettare linee di delimitazione',
+                        'Attendere arresto completo prima di intervenire',
+                        'Utilizzare dispositivi LOTO'
+                    ],
+                    gameplay: { spawn_rate: 'rare' }
+                },
+                {
+                    id: 'falling-objects',
+                    name: 'Caduta di Oggetti',
+                    short_name: 'Oggetti Cadenti',
+                    icon: '📦',
+                    danger: { 
+                        severity: 'high',
+                        description: 'Materiali stoccati in modo instabile. Rischio di caduta e impatto.'
+                    },
+                    normative: {
+                        reference: 'D.Lgs. 81/08',
+                        article: 'Art. 48 - Magazzini e depositi'
+                    },
+                    prevention: [
+                        'Non stazionare sotto carichi sospesi',
+                        'Verificare stabilità degli scaffali',
+                        'Segnalare carichi instabili'
+                    ],
+                    gameplay: { spawn_rate: 'uncommon' }
+                },
+                {
+                    id: 'step-ladder',
+                    name: 'Scala a Pioli Instabile',
+                    short_name: 'Scala',
+                    icon: '🪜',
+                    danger: { 
+                        severity: 'high',
+                        description: 'Scala senza base stabile o su superficie irregolare. Rischio di caduta.'
+                    },
+                    normative: {
+                        reference: 'D.Lgs. 81/08',
+                        article: 'Art. 119 - Lavori in quota'
+                    },
+                    prevention: [
+                        'Verificare piedini antiscivolo',
+                        'Mantenere 3 punti di appoggio',
+                        'Non utilizzare scale danneggiate'
+                    ],
+                    gameplay: { spawn_rate: 'uncommon' }
+                },
+                {
+                    id: 'chemical-container',
+                    name: 'Contenitore Chimico Aperto',
+                    short_name: 'Prodotti Chimici',
+                    icon: '☠️',
+                    danger: { 
+                        severity: 'critical',
+                        description: 'Fusti o contenitori di sostanze pericolose non sigillati. Rischio di esposizione.'
+                    },
+                    normative: {
+                        reference: 'D.Lgs. 81/08',
+                        article: 'Art. 225 - Agenti chimici'
+                    },
+                    prevention: [
+                        'Indossare DPI specifici',
+                        'Verificare etichette di pericolo',
+                        'Segnalare immediatamente perdite'
+                    ],
+                    gameplay: { spawn_rate: 'rare' }
+                },
+                {
+                    id: 'forklift-zone',
+                    name: 'Zona Traffico Industriale',
+                    short_name: 'Traffico Muletti',
+                    icon: '🚧',
+                    danger: { 
+                        severity: 'high',
+                        description: 'Area con transito di carrelli elevatori e mezzi industriali. Rischio di investimento.'
+                    },
+                    normative: {
+                        reference: 'D.Lgs. 81/08',
+                        article: 'Art. 53 - Piattaforme di carico'
+                    },
+                    prevention: [
+                        'Rispettare i segnali acustici dei muletti',
+                        'Attraversare solo nelle aree pedonali',
+                        'Mantenire contatto visivo con l\'operatore'
+                    ],
+                    gameplay: { spawn_rate: 'uncommon' }
+                },
+                {
+                    id: 'compressed-gas',
+                    name: 'Bombola Gas compressi',
+                    short_name: 'Gas Compressi',
+                    icon: '🫙',
+                    danger: { 
+                        severity: 'high',
+                        description: 'Bombole di gas ad alta pressione. Rischio di esplosione o proiezione.'
+                    },
+                    normative: {
+                        reference: 'D.Lgs. 81/08',
+                        article: 'Art. 78 - Attrezzature a pressione'
+                    },
+                    prevention: [
+                        'Non colpire o urtare le bombole',
+                        'Verificare integrità valvole',
+                        'Segnalare immediatamente fughe'
+                    ],
+                    gameplay: { spawn_rate: 'uncommon' }
                 }
             ]
         };
@@ -199,12 +353,19 @@ export class HazardManager {
      */
     update(deltaTime, currentTime, wormPosition, wormSegments) {
         // Skip se dati non caricati
-        if (!this.hazardData || !this.hazardData.hazards) return;
+        if (!this.hazardData || !this.hazardData.hazards) {
+            console.warn('[HazardManager] Dati non disponibili, skip update');
+            return;
+        }
+        
+        // Primo spawn più veloce (dopo 3 secondi)
+        const firstSpawnDelay = this.initialSpawnDone ? this.spawnInterval : 3000;
         
         // Controlla se è tempo di spawnare un nuovo ostacolo
-        if (currentTime - this.lastSpawn > this.spawnInterval) {
+        if (currentTime - this.lastSpawn > firstSpawnDelay) {
             if (this.hazards.length < this.maxHazards) {
                 this.spawnHazard(wormPosition, wormSegments);
+                this.initialSpawnDone = true;
             }
             this.lastSpawn = currentTime;
         }
@@ -282,7 +443,7 @@ export class HazardManager {
      * Trova una posizione valida lontana dal verme
      */
     findValidPosition(wormPosition, wormSegments) {
-        const margin = 3; // Distanza minima dal verme
+        const margin = 2; // Distanza minima dal verme (ridotto per spawn più vicini)
         const maxAttempts = 20;
         
         for (let i = 0; i < maxAttempts; i++) {

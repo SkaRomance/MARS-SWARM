@@ -591,6 +591,8 @@ export class Game {
     }
     
     gameOverSafety(hazardData) {
+        console.log('[Game] Game Over Safety:', hazardData?.name);
+        
         // Fallback se hazardData non è valido
         if (!hazardData) {
             hazardData = {
