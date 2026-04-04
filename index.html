@@ -18,6 +18,81 @@
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
         
+        <!-- Proximity Warning Overlay -->
+        <div id="warning-overlay" class="warning-overlay">
+            <div class="warning-content">
+                <div class="warning-icon">⚠️</div>
+                <div id="warning-text" class="warning-text">Pericolo Rilevato</div>
+                <div id="warning-distance" class="warning-distance">3.5m</div>
+            </div>
+        </div>
+        
+        <!-- Tutorial Overlay -->
+        <div id="tutorial-overlay" class="overlay">
+            <div class="menu-panel tutorial-panel">
+                <h2 class="menu-title">🎓 TUTORIAL SAFETY</h2>
+                <p class="tutorial-intro">Impara a riconoscere i pericoli sul lavoro!</p>
+                
+                <div class="hazard-legend">
+                    <h3>Simboli dei Pericoli:</h3>
+                    <div class="legend-grid">
+                        <div class="legend-item">
+                            <span class="legend-icon">⚡</span>
+                            <span class="legend-name">Cavi Elettrici</span>
+                            <span class="legend-risk">Rischio: Folgorazione</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon">🛢️</span>
+                            <span class="legend-name">Sversamenti</span>
+                            <span class="legend-risk">Rischio: Scivolamento</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon">🤖</span>
+                            <span class="legend-name">Macchinari</span>
+                            <span class="legend-risk">Rischio: Urto</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon">📦</span>
+                            <span class="legend-name">Caduta Oggetti</span>
+                            <span class="legend-risk">Rischio: Impatto</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon">🪜</span>
+                            <span class="legend-name">Scale</span>
+                            <span class="legend-risk">Rischio: Caduta</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon">☠️</span>
+                            <span class="legend-name">Chimici</span>
+                            <span class="legend-risk">Rischio: Tossicità</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon">🚧</span>
+                            <span class="legend-name">Traffico</span>
+                            <span class="legend-risk">Rischio: Investimento</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon">🫙</span>
+                            <span class="legend-name">Gas</span>
+                            <span class="legend-risk">Rischio: Esplosione</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tutorial-tips">
+                    <h3>💡 Come Giocare:</h3>
+                    <ul>
+                        <li>🎮 Usa le <strong>frecce</strong> o <strong>SWIPE</strong> per muoverti</li>
+                        <li>⚠️ <strong>Evita gli ostacoli</strong> con l'icona rossa</li>
+                        <li>🔴 Quando vedi il <strong>bordo rosso</strong>, rallenta!</li>
+                        <li>📚 Se sbagli, imparerai come prevenire l'incidente</li>
+                    </ul>
+                </div>
+                
+                <button id="btn-start-game" class="menu-btn primary">🚀 INIZIA IL GIRO DI PERIZIA</button>
+            </div>
+        </div>
+        
         <!-- HUD -->
         <div id="hud">
             <div id="score-container">

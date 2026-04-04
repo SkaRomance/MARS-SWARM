@@ -624,3 +624,228 @@ body.device-desktop .pause-btn {
         font-size: 18px;
     }
 }
+
+/* ============================================
+   WARNING OVERLAY - Pericolo Imminente
+   ============================================ */
+
+.warning-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 0, 0, 0);
+    pointer-events: none;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 80px;
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.3s ease;
+    z-index: 50;
+}
+
+.warning-overlay.active {
+    opacity: 1;
+}
+
+.warning-content {
+    background: rgba(0, 0, 0, 0.85);
+    border: 3px solid #ff0000;
+    border-radius: 15px;
+    padding: 20px 40px;
+    text-align: center;
+    animation: warning-pulse 0.5s ease-in-out infinite alternate;
+    box-shadow: 
+        0 0 20px rgba(255, 0, 0, 0.5),
+        inset 0 0 20px rgba(255, 0, 0, 0.2);
+}
+
+.warning-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    animation: warning-blink 0.3s ease-in-out infinite alternate;
+}
+
+.warning-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #ff0000;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+}
+
+.warning-distance {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    color: #ffaa00;
+    font-weight: 500;
+}
+
+@keyframes warning-pulse {
+    from {
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+    }
+    to {
+        transform: scale(1.05);
+        box-shadow: 0 0 40px rgba(255, 0, 0, 0.8);
+    }
+}
+
+@keyframes warning-blink {
+    from { opacity: 1; }
+    to { opacity: 0.5; }
+}
+
+/* ============================================
+   TUTORIAL PANEL
+   ============================================ */
+
+.tutorial-panel {
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.tutorial-intro {
+    text-align: center;
+    font-size: 18px;
+    color: var(--mars-green-dark);
+    margin-bottom: 20px;
+}
+
+.hazard-legend {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 200, 81, 0.1);
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+}
+
+.hazard-legend h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: var(--mars-green-dark);
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.legend-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 200, 81, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.legend-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 200, 81, 0.2);
+}
+
+.legend-icon {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.legend-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #333;
+    text-align: center;
+}
+
+.legend-risk {
+    font-size: 11px;
+    color: #ff0000;
+    font-weight: 500;
+}
+
+.tutorial-tips {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 200, 81, 0.1);
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+}
+
+.tutorial-tips h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: var(--mars-green-dark);
+    margin-bottom: 10px;
+}
+
+.tutorial-tips ul {
+    list-style: none;
+    padding: 0;
+}
+
+.tutorial-tips li {
+    padding: 8px 0;
+    font-size: 15px;
+    color: #333;
+    border-bottom: 1px solid rgba(0, 200, 81, 0.2);
+}
+
+.tutorial-tips li:last-child {
+    border-bottom: none;
+}
+
+.tutorial-tips strong {
+    color: var(--mars-green-dark);
+}
+
+/* Responsive tutorial */
+@media (max-width: 600px) {
+    .legend-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .legend-item {
+        padding: 8px;
+    }
+    
+    .legend-icon {
+        font-size: 24px;
+    }
+    
+    .legend-name {
+        font-size: 10px;
+    }
+    
+    .legend-risk {
+        font-size: 9px;
+    }
+    
+    .warning-content {
+        padding: 15px 25px;
+    }
+    
+    .warning-icon {
+        font-size: 36px;
+    }
+    
+    .warning-text {
+        font-size: 18px;
+    }
+    
+    .warning-distance {
+        font-size: 14px;
+    }
+}

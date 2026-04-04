@@ -372,6 +372,9 @@ export class HazardManager {
         
         // Aggiorna ostacoli esistenti (animazioni)
         this.updateHazards(deltaTime, currentTime);
+        
+        // Controlla avvicinamento a pericoli (per UI warning)
+        this.checkProximityWarning(wormPosition);
     }
 
     /**
@@ -435,6 +438,12 @@ export class HazardManager {
         
         // Effetto spawn
         this.createSpawnEffect(position, hazardType.color);
+        
+        // Aggiungi indicatore visivo fluttuante (icona 3D)
+        this.createFloatingIcon(mesh, hazardType);
+        
+        // Aggiungi anello di warning al suolo
+        this.createWarningRing(position, hazardType.color);
         
         console.log(`[HazardManager] Spawnato: ${hazardType.name}`);
     }
@@ -554,6 +563,72 @@ export class HazardManager {
     }
 
     /**
+     * Crea icona fluttuante 3D sopra l'hazard
+     */
+    createFloatingIcon(hazardMesh, hazardType) {
+        // Crea sprite con emoji/icona
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        
+        // Sfondo circolare
+        ctx.beginPath();
+        ctx.arc(64, 64, 60, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fill();
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        
+        // Emoji/icona
+        ctx.font = '80px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(hazardType.icon || '⚠️', 64, 64);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.SpriteMaterial({ 
+            map: texture, 
+            transparent: true,
+            opacity: 0.9
+        });
+        const sprite = new THREE.Sprite(material);
+        sprite.scale.set(2, 2, 1);
+        sprite.position.y = 2.5; // Sopra l'hazard
+        
+        hazardMesh.add(sprite);
+        
+        // Animazione fluttuante
+        sprite.userData.floatOffset = Math.random() * Math.PI * 2;
+    }
+
+    /**
+     * Crea anello di warning al suolo
+     */
+    createWarningRing(position, color) {
+        const geometry = new THREE.RingGeometry(1.2, 1.5, 32);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xff0000,
+            transparent: true,
+            opacity: 0.4,
+            side: THREE.DoubleSide
+        });
+        const ring = new THREE.Mesh(geometry, material);
+        ring.position.copy(position);
+        ring.position.y = 0.05;
+        ring.rotation.x = -Math.PI / 2;
+        
+        this.scene.add(ring);
+        
+        // Link all'hazard per rimozione
+        const hazard = this.hazards[this.hazards.length - 1];
+        if (hazard) {
+            hazard.userData.warningRing = ring;
+        }
+    }
+
+    /**
      * Controlla collisione con ostacoli
      */
     checkCollision(wormHeadPosition) {
@@ -579,10 +654,35 @@ export class HazardManager {
     }
 
     /**
+     * Controlla se il worm si sta avvicinando a un pericolo (warning anticipato)
+     */
+    checkProximityWarning(wormHeadPosition) {
+        if (!wormHeadPosition) return null;
+        
+        const warningDistance = 4; // Distanza di avviso
+        let nearestHazard = null;
+        let nearestDistance = Infinity;
+        
+        for (const hazard of this.hazards) {
+            const distance = wormHeadPosition.distanceTo(hazard.position);
+            if (distance < warningDistance && distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestHazard = hazard.userData.hazardData;
+            }
+        }
+        
+        return nearestHazard ? { hazard: nearestHazard, distance: nearestDistance } : null;
+    }
+
+    /**
      * Rimuovi tutti gli ostacoli
      */
     clear() {
         for (const hazard of this.hazards) {
+            // Rimuovi anche l'anello di warning se presente
+            if (hazard.userData.warningRing) {
+                this.scene.remove(hazard.userData.warningRing);
+            }
             this.scene.remove(hazard);
         }
         this.hazards = [];

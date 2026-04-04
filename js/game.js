@@ -51,7 +51,13 @@ export class Game {
             statIncidents: document.getElementById('stat-incidents'),
             statAvg: document.getElementById('stat-avg'),
             statBest: document.getElementById('stat-best'),
-            statsHazards: document.getElementById('stats-hazards')
+            statsHazards: document.getElementById('stats-hazards'),
+            // Proximity warning
+            warningOverlay: document.getElementById('warning-overlay'),
+            warningText: document.getElementById('warning-text'),
+            warningDistance: document.getElementById('warning-distance'),
+            // Tutorial
+            tutorialOverlay: document.getElementById('tutorial-overlay')
         };
         
         // Input state
@@ -98,10 +104,13 @@ export class Game {
         this.setupSwipeGestures();
         
         // Menu buttons
-        document.getElementById('btn-start').addEventListener('click', () => this.start());
+        document.getElementById('btn-start').addEventListener('click', () => this.showTutorial());
         document.getElementById('btn-restart').addEventListener('click', () => this.restart());
         document.getElementById('btn-highscores').addEventListener('click', () => this.showHighScores());
         document.getElementById('btn-stats').addEventListener('click', () => this.showStats());
+        
+        // Tutorial button
+        document.getElementById('btn-start-game').addEventListener('click', () => this.startFromTutorial());
         document.getElementById('btn-close-stats').addEventListener('click', () => this.hideStats());
         document.getElementById('btn-export').addEventListener('click', () => this.analytics.exportData());
         document.getElementById('btn-report').addEventListener('click', () => this.analytics.generateReport());
@@ -374,6 +383,22 @@ export class Game {
         this.showHighScores();
     }
     
+    /**
+     * Mostra il tutorial all'avvio
+     */
+    showTutorial() {
+        this.ui.mainMenu.classList.remove('active');
+        document.getElementById('tutorial-overlay').classList.add('active');
+    }
+    
+    /**
+     * Inizia il gioco dal tutorial
+     */
+    startFromTutorial() {
+        document.getElementById('tutorial-overlay').classList.remove('active');
+        this.start();
+    }
+    
     showHighScores() {
         const highScores = JSON.parse(localStorage.getItem('swarm_highscores')) || [];
         
@@ -590,6 +615,35 @@ export class Game {
         this.analytics.endSession(this.score);
     }
     
+    /**
+     * Aggiorna l'UI di warning quando ci si avvicina a un pericolo
+     */
+    updateProximityWarning(warning) {
+        if (!this.ui.warningOverlay) return;
+        
+        if (warning && warning.distance < 4) {
+            // Mostra warning
+            this.ui.warningOverlay.classList.add('active');
+            if (this.ui.warningText) {
+                this.ui.warningText.textContent = `⚠️ ${warning.hazard.name}`;
+            }
+            if (this.ui.warningDistance) {
+                const meters = warning.distance.toFixed(1);
+                this.ui.warningDistance.textContent = `${meters}m - RALLENTA!`;
+            }
+            
+            // Cambia colore in base alla distanza
+            if (warning.distance < 2) {
+                this.ui.warningOverlay.style.background = 'rgba(255, 0, 0, 0.3)';
+            } else {
+                this.ui.warningOverlay.style.background = 'rgba(255, 165, 0, 0.2)';
+            }
+        } else {
+            // Nascondi warning
+            this.ui.warningOverlay.classList.remove('active');
+        }
+    }
+    
     gameOverSafety(hazardData) {
         console.log('[Game] Game Over Safety:', hazardData?.name);
         
@@ -717,6 +771,10 @@ export class Game {
                     this.gameOverSafety(collision);
                     return;
                 }
+                
+                // Check proximity warning (pericolo imminente)
+                const warning = this.hazardManager.checkProximityWarning(headPos);
+                this.updateProximityWarning(warning);
             } catch (err) {
                 console.error('[Game] Errore hazard update:', err);
             }
