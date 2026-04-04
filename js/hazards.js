@@ -33,9 +33,9 @@ export class HazardManager {
      */
     start() {
         this.lastSpawn = performance.now();
-        this.clear(); // Pulisce eventuali hazard residui
+        this.clear();
         this.initialSpawnDone = false;
-        console.log('[HazardManager] Gioco iniziato - spawn tra 5 secondi');
+        console.log('[HazardManager] Ready - spawn in 2s');
     }
 
     /**
@@ -46,10 +46,9 @@ export class HazardManager {
             const response = await fetch('assets/content/hazard-database.json');
             const data = await response.json();
             this.hazardData = data;
-            console.log(`[HazardManager] Caricati ${data.hazards.length} tipi di pericoli`);
+            console.log(`[HazardManager] Loaded ${data.hazards.length} hazard types`);
         } catch (error) {
-            console.error('[HazardManager] Errore caricamento dati:', error);
-            // Fallback dati minimi
+            console.log('[HazardManager] Using fallback data');
             this.hazardData = this.getFallbackData();
         }
     }
@@ -397,37 +396,30 @@ export class HazardManager {
      * Aggiorna il manager (spawn nuovi ostacoli)
      */
     update(deltaTime, currentTime, wormPosition, wormSegments) {
-        // Skip se dati non caricati
-        if (!this.hazardData || !this.hazardData.hazards) {
-            console.warn('[HazardManager] Dati non disponibili, skip update');
+        if (!this.hazardData || !this.hazardData.hazards) return;
+        
+        // Spawn immediato se nessun hazard presente (primo spawn garantito)
+        if (this.hazards.length === 0 && !this.initialSpawnDone) {
+            if (currentTime - this.lastSpawn > 2000) {
+                this.spawnHazard(wormPosition, wormSegments);
+                this.initialSpawnDone = true;
+                this.lastSpawn = currentTime;
+            }
             return;
         }
         
-        // Primo spawn più veloce (dopo 3 secondi)
-        const firstSpawnDelay = this.initialSpawnDone ? this.spawnInterval : 3000;
-        const timeSinceLastSpawn = currentTime - this.lastSpawn;
-        
-        // Log solo ogni 2 secondi per non spammare
-        if (Math.floor(timeSinceLastSpawn / 2000) !== Math.floor((timeSinceLastSpawn - deltaTime) / 2000)) {
-            console.log(`[HazardManager] ⏱️ Timer: ${timeSinceLastSpawn.toFixed(0)}ms / ${firstSpawnDelay}ms | Hazard: ${this.hazards.length}/${this.maxHazards}`);
-        }
-        
-        // Controlla se è tempo di spawnare un nuovo ostacolo
-        if (timeSinceLastSpawn > firstSpawnDelay) {
-            console.log(`[HazardManager] 🚨 Timer scaduto! Tentativo spawn...`);
+        // Spawn successivi ogni 3 secondi
+        if (currentTime - this.lastSpawn > 3000) {
             if (this.hazards.length < this.maxHazards) {
                 this.spawnHazard(wormPosition, wormSegments);
-                this.initialSpawnDone = true;
-            } else {
-                console.log(`[HazardManager] ⚠️ Max hazard raggiunto (${this.maxHazards})`);
             }
             this.lastSpawn = currentTime;
         }
         
-        // Aggiorna ostacoli esistenti (animazioni)
+        // Aggiorna animazioni
         this.updateHazards(deltaTime, currentTime);
         
-        // Controlla avvicinamento a pericoli (per UI warning)
+        // Check warning prossimita
         this.checkProximityWarning(wormPosition);
     }
 
@@ -435,16 +427,11 @@ export class HazardManager {
      * Spawna un nuovo ostacolo
      */
     spawnHazard(wormPosition, wormSegments) {
-        console.log('[HazardManager] >>> Tentativo spawn...');
-        
-        // Verifica che i dati siano caricati
         if (!this.hazardData || !this.hazardData.hazards || this.hazardData.hazards.length === 0) {
-            console.warn('[HazardManager] ❌ Dati non caricati, skip spawn');
             return;
         }
-        console.log(`[HazardManager] ✅ Dati OK: ${this.hazardData.hazards.length} tipi`);
         
-        // Seleziona tipo di pericolo basato su spawn_rate
+        // Seleziona tipo hazard
         const hazardTypes = this.hazardData.hazards;
         const weights = hazardTypes.map(h => {
             const rate = h.gameplay?.spawn_rate || 'common';
@@ -454,24 +441,17 @@ export class HazardManager {
         
         const selectedIndex = this.weightedRandom(weights);
         const hazardType = hazardTypes[selectedIndex];
-        console.log(`[HazardManager] 🎯 Selezionato: ${hazardType.id}`);
         
-        // Trova posizione valida (non sul verme)
+        // Trova posizione valida
         const position = this.findValidPosition(wormPosition, wormSegments);
-        if (!position) {
-            console.warn('[HazardManager] ❌ Nessuna posizione valida trovata');
-            return;
-        }
-        console.log(`[HazardManager] 📍 Posizione: ${position.x.toFixed(1)}, ${position.z.toFixed(1)}`);
+        if (!position) return;
         
         // Crea mesh
         const geometry = this.geometries.get(hazardType.id);
         const material = this.materials.get(hazardType.id);
         
         if (!geometry || !material) {
-            console.error(`[HazardManager] ❌ Geometria o materiale mancante per ${hazardType.id}`);
-            console.log('  Geometrie:', Array.from(this.geometries.keys()));
-            console.log('  Materiali:', Array.from(this.materials.keys()));
+            console.warn(`[HazardManager] Missing geometry/material for ${hazardType.id}`);
             return;
         }
         
@@ -506,13 +486,11 @@ export class HazardManager {
         // Effetto spawn
         this.createSpawnEffect(position, hazardType.color);
         
-        // Aggiungi indicatore visivo fluttuante (icona 3D) - ottimizzato
+        // Icona fluttuante
         this.createFloatingIcon(mesh, hazardType);
         
-        // Log spawn
-        if (this.hazards.length <= 1) {
-            console.log(`[HazardManager] Primo hazard spawnato: ${hazardType.name}`);
-        }
+        // Log primo spawn
+        console.log(`[HazardManager] Spawned: ${hazardType.name} (${this.hazards.length} total)`);
     }
 
     /**
