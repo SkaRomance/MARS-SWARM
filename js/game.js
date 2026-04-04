@@ -779,25 +779,30 @@ export class Game {
         // Check collisions
         this.checkFruitCollision();
         
-        // Update hazards (sempre attivi in modalità Safety)
+        // Update hazards
         if (this.hazardManager) {
             try {
                 const headPos = this.worm.getHeadPosition();
-                const currentTime = performance.now();
-                this.hazardManager.update(deltaTime * 1000, currentTime, headPos, this.worm.segments);
                 
-                // Check hazard collision
+                // Update (spawn, animazioni)
+                this.hazardManager.update(deltaTime * 1000, headPos, this.worm.segments);
+                
+                // Check collision
                 const collision = this.hazardManager.checkCollision(headPos);
                 if (collision) {
                     this.gameOverSafety(collision);
                     return;
                 }
                 
-                // Check proximity warning (pericolo imminente)
-                const warning = this.hazardManager.checkProximityWarning(headPos);
-                this.updateProximityWarning(warning);
+                // Check proximity warning (throttled)
+                this._warningTimer = (this._warningTimer || 0) + deltaTime;
+                if (this._warningTimer > 0.2) { // 5 volte al secondo
+                    const warning = this.hazardManager.checkProximity(headPos);
+                    this.updateProximityWarning(warning);
+                    this._warningTimer = 0;
+                }
             } catch (err) {
-                console.error('[Game] Errore hazard update:', err);
+                console.error('[Game] Hazard error:', err);
             }
         }
         
