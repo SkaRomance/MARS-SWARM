@@ -198,7 +198,8 @@ export class HazardManager {
      * Aggiorna il manager (spawn nuovi ostacoli)
      */
     update(deltaTime, currentTime, wormPosition, wormSegments) {
-        if (!this.hazardData) return;
+        // Skip se dati non caricati
+        if (!this.hazardData || !this.hazardData.hazards) return;
         
         // Controlla se è tempo di spawnare un nuovo ostacolo
         if (currentTime - this.lastSpawn > this.spawnInterval) {
@@ -216,6 +217,12 @@ export class HazardManager {
      * Spawna un nuovo ostacolo
      */
     spawnHazard(wormPosition, wormSegments) {
+        // Verifica che i dati siano caricati
+        if (!this.hazardData || !this.hazardData.hazards || this.hazardData.hazards.length === 0) {
+            console.warn('[HazardManager] Dati non ancora caricati, skip spawn');
+            return;
+        }
+        
         // Seleziona tipo di pericolo basato su spawn_rate
         const hazardTypes = this.hazardData.hazards;
         const weights = hazardTypes.map(h => {
@@ -389,14 +396,21 @@ export class HazardManager {
      * Controlla collisione con ostacoli
      */
     checkCollision(wormHeadPosition) {
+        if (!wormHeadPosition) return null;
+        
         const headBox = new THREE.Box3().setFromCenterAndSize(
             wormHeadPosition,
             new THREE.Vector3(0.8, 0.8, 0.8)
         );
         
         for (const hazard of this.hazards) {
+            if (!hazard.userData.boundingBox) continue;
+            
             if (hazard.userData.boundingBox.intersectsBox(headBox)) {
-                return hazard.userData.hazardData;
+                // Assicurati che hazardData esista e abbia almeno name
+                if (hazard.userData.hazardData && hazard.userData.hazardData.name) {
+                    return hazard.userData.hazardData;
+                }
             }
         }
         

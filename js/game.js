@@ -591,6 +591,17 @@ export class Game {
     }
     
     gameOverSafety(hazardData) {
+        // Fallback se hazardData non è valido
+        if (!hazardData) {
+            hazardData = {
+                name: 'Pericolo Sconosciuto',
+                icon: '⚠️',
+                danger: { description: 'Hai colpito un ostacolo.' },
+                normative: { reference: 'D.Lgs. 81/08', article: '' },
+                prevention: ['Segnalare il pericolo al responsabile']
+            };
+        }
+        
         this.isPlaying = false;
         this.isGameOver = true;
         
@@ -603,7 +614,7 @@ export class Game {
         
         // Populate safety screen with hazard data
         if (this.ui.safetyHazardName) {
-            this.ui.safetyHazardName.textContent = hazardData.name;
+            this.ui.safetyHazardName.textContent = hazardData.name || 'Pericolo';
         }
         if (this.ui.safetyIcon) {
             this.ui.safetyIcon.textContent = hazardData.icon || '⚠️';
@@ -693,15 +704,19 @@ export class Game {
         
         // Update hazards (sempre attivi in modalità Safety)
         if (this.hazardManager) {
-            const headPos = this.worm.getHeadPosition();
-            const currentTime = performance.now();
-            this.hazardManager.update(deltaTime * 1000, currentTime, headPos, this.worm.segments);
-            
-            // Check hazard collision
-            const collision = this.hazardManager.checkCollision(headPos);
-            if (collision) {
-                this.gameOverSafety(collision);
-                return;
+            try {
+                const headPos = this.worm.getHeadPosition();
+                const currentTime = performance.now();
+                this.hazardManager.update(deltaTime * 1000, currentTime, headPos, this.worm.segments);
+                
+                // Check hazard collision
+                const collision = this.hazardManager.checkCollision(headPos);
+                if (collision) {
+                    this.gameOverSafety(collision);
+                    return;
+                }
+            } catch (err) {
+                console.error('[Game] Errore hazard update:', err);
             }
         }
         
