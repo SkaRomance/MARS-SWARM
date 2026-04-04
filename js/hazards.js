@@ -19,11 +19,13 @@ export class HazardManager {
         // Geometrie/materiali cache
         this.geometries = new Map();
         this.materials = new Map();
+        this.iconTextures = new Map(); // Cache icone
         
         // Inizializza subito con fallback per avere ostacoli immediati
         this.hazardData = this.getFallbackData();
         this.loadHazardData(); // Poi prova a caricare il JSON completo
         this.initGeometries();
+        this.initIconTextures(); // Precarica icone
     }
 
     /**
@@ -304,6 +306,49 @@ export class HazardManager {
     }
 
     /**
+     * Precarica tutte le texture delle icone (ottimizzazione performance)
+     */
+    initIconTextures() {
+        const icons = {
+            'trailing-cables': '⚡',
+            'oil-spill': '🛢️',
+            'moving-machinery': '🤖',
+            'falling-objects': '📦',
+            'step-ladder': '🪜',
+            'chemical-container': '☠️',
+            'forklift-zone': '🚧',
+            'compressed-gas': '🫙'
+        };
+
+        for (const [id, icon] of Object.entries(icons)) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            
+            // Sfondo circolare
+            ctx.beginPath();
+            ctx.arc(64, 64, 60, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fill();
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // Emoji
+            ctx.font = '80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(icon, 64, 64);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            this.iconTextures.set(id, texture);
+        }
+    }
+
+    /**
      * Crea geometria per cavi (serpentone)
      */
     createCableGeometry() {
@@ -439,13 +484,13 @@ export class HazardManager {
         // Effetto spawn
         this.createSpawnEffect(position, hazardType.color);
         
-        // Aggiungi indicatore visivo fluttuante (icona 3D)
+        // Aggiungi indicatore visivo fluttuante (icona 3D) - ottimizzato
         this.createFloatingIcon(mesh, hazardType);
         
-        // Aggiungi anello di warning al suolo
-        this.createWarningRing(position, hazardType.color);
-        
-        console.log(`[HazardManager] Spawnato: ${hazardType.name}`);
+        // Log spawn
+        if (this.hazards.length <= 1) {
+            console.log(`[HazardManager] Primo hazard spawnato: ${hazardType.name}`);
+        }
     }
 
     /**
@@ -566,28 +611,10 @@ export class HazardManager {
      * Crea icona fluttuante 3D sopra l'hazard
      */
     createFloatingIcon(hazardMesh, hazardType) {
-        // Crea sprite con emoji/icona
-        const canvas = document.createElement('canvas');
-        canvas.width = 128;
-        canvas.height = 128;
-        const ctx = canvas.getContext('2d');
+        // Usa texture precaricata (ottimizzato)
+        const texture = this.iconTextures.get(hazardType.id);
+        if (!texture) return;
         
-        // Sfondo circolare
-        ctx.beginPath();
-        ctx.arc(64, 64, 60, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fill();
-        ctx.strokeStyle = '#ff0000';
-        ctx.lineWidth = 4;
-        ctx.stroke();
-        
-        // Emoji/icona
-        ctx.font = '80px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(hazardType.icon || '⚠️', 64, 64);
-        
-        const texture = new THREE.CanvasTexture(canvas);
         const material = new THREE.SpriteMaterial({ 
             map: texture, 
             transparent: true,
@@ -601,31 +628,6 @@ export class HazardManager {
         
         // Animazione fluttuante
         sprite.userData.floatOffset = Math.random() * Math.PI * 2;
-    }
-
-    /**
-     * Crea anello di warning al suolo
-     */
-    createWarningRing(position, color) {
-        const geometry = new THREE.RingGeometry(1.2, 1.5, 32);
-        const material = new THREE.MeshBasicMaterial({
-            color: 0xff0000,
-            transparent: true,
-            opacity: 0.4,
-            side: THREE.DoubleSide
-        });
-        const ring = new THREE.Mesh(geometry, material);
-        ring.position.copy(position);
-        ring.position.y = 0.05;
-        ring.rotation.x = -Math.PI / 2;
-        
-        this.scene.add(ring);
-        
-        // Link all'hazard per rimozione
-        const hazard = this.hazards[this.hazards.length - 1];
-        if (hazard) {
-            hazard.userData.warningRing = ring;
-        }
     }
 
     /**
@@ -679,10 +681,6 @@ export class HazardManager {
      */
     clear() {
         for (const hazard of this.hazards) {
-            // Rimuovi anche l'anello di warning se presente
-            if (hazard.userData.warningRing) {
-                this.scene.remove(hazard.userData.warningRing);
-            }
             this.scene.remove(hazard);
         }
         this.hazards = [];

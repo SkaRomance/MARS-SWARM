@@ -22,6 +22,10 @@ export class Game {
         this.isPaused = false;
         this.lastTime = 0;
         
+        // Warning state (throttling)
+        this.lastWarningUpdate = 0;
+        this.lastWarningHazard = null;
+        
         // Saved game data
         this.savedGame = null;
         this.loadSavedGameData();
@@ -617,16 +621,32 @@ export class Game {
     
     /**
      * Aggiorna l'UI di warning quando ci si avvicina a un pericolo
+     * Throttled: max 10 volte al secondo per evitare lag
      */
     updateProximityWarning(warning) {
         if (!this.ui.warningOverlay) return;
         
-        if (warning && warning.distance < 4) {
-            // Mostra warning
-            this.ui.warningOverlay.classList.add('active');
-            if (this.ui.warningText) {
-                this.ui.warningText.textContent = `⚠️ ${warning.hazard.name}`;
+        // Throttle a 10fps per l'UI
+        const now = performance.now();
+        if (this.lastWarningUpdate && now - this.lastWarningUpdate < 100) {
+            return; // Skip questo frame
+        }
+        this.lastWarningUpdate = now;
+        
+        const isWarning = warning && warning.distance < 4;
+        const wasWarning = this.ui.warningOverlay.classList.contains('active');
+        
+        // Aggiorna solo se cambia stato
+        if (isWarning) {
+            if (!wasWarning || this.lastWarningHazard !== warning.hazard.id) {
+                this.ui.warningOverlay.classList.add('active');
+                if (this.ui.warningText) {
+                    this.ui.warningText.textContent = `⚠️ ${warning.hazard.name}`;
+                }
+                this.lastWarningHazard = warning.hazard.id;
             }
+            
+            // Aggiorna distanza (solo se cambiata significativamente)
             if (this.ui.warningDistance) {
                 const meters = warning.distance.toFixed(1);
                 this.ui.warningDistance.textContent = `${meters}m - RALLENTA!`;
@@ -638,9 +658,10 @@ export class Game {
             } else {
                 this.ui.warningOverlay.style.background = 'rgba(255, 165, 0, 0.2)';
             }
-        } else {
-            // Nascondi warning
+        } else if (wasWarning) {
+            // Nascondi warning solo se era attivo
             this.ui.warningOverlay.classList.remove('active');
+            this.lastWarningHazard = null;
         }
     }
     
