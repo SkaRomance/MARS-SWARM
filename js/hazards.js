@@ -405,12 +405,21 @@ export class HazardManager {
         
         // Primo spawn più veloce (dopo 3 secondi)
         const firstSpawnDelay = this.initialSpawnDone ? this.spawnInterval : 3000;
+        const timeSinceLastSpawn = currentTime - this.lastSpawn;
+        
+        // Log solo ogni 2 secondi per non spammare
+        if (Math.floor(timeSinceLastSpawn / 2000) !== Math.floor((timeSinceLastSpawn - deltaTime) / 2000)) {
+            console.log(`[HazardManager] ⏱️ Timer: ${timeSinceLastSpawn.toFixed(0)}ms / ${firstSpawnDelay}ms | Hazard: ${this.hazards.length}/${this.maxHazards}`);
+        }
         
         // Controlla se è tempo di spawnare un nuovo ostacolo
-        if (currentTime - this.lastSpawn > firstSpawnDelay) {
+        if (timeSinceLastSpawn > firstSpawnDelay) {
+            console.log(`[HazardManager] 🚨 Timer scaduto! Tentativo spawn...`);
             if (this.hazards.length < this.maxHazards) {
                 this.spawnHazard(wormPosition, wormSegments);
                 this.initialSpawnDone = true;
+            } else {
+                console.log(`[HazardManager] ⚠️ Max hazard raggiunto (${this.maxHazards})`);
             }
             this.lastSpawn = currentTime;
         }
@@ -426,11 +435,14 @@ export class HazardManager {
      * Spawna un nuovo ostacolo
      */
     spawnHazard(wormPosition, wormSegments) {
+        console.log('[HazardManager] >>> Tentativo spawn...');
+        
         // Verifica che i dati siano caricati
         if (!this.hazardData || !this.hazardData.hazards || this.hazardData.hazards.length === 0) {
-            console.warn('[HazardManager] Dati non ancora caricati, skip spawn');
+            console.warn('[HazardManager] ❌ Dati non caricati, skip spawn');
             return;
         }
+        console.log(`[HazardManager] ✅ Dati OK: ${this.hazardData.hazards.length} tipi`);
         
         // Seleziona tipo di pericolo basato su spawn_rate
         const hazardTypes = this.hazardData.hazards;
@@ -442,16 +454,26 @@ export class HazardManager {
         
         const selectedIndex = this.weightedRandom(weights);
         const hazardType = hazardTypes[selectedIndex];
+        console.log(`[HazardManager] 🎯 Selezionato: ${hazardType.id}`);
         
         // Trova posizione valida (non sul verme)
         const position = this.findValidPosition(wormPosition, wormSegments);
-        if (!position) return;
+        if (!position) {
+            console.warn('[HazardManager] ❌ Nessuna posizione valida trovata');
+            return;
+        }
+        console.log(`[HazardManager] 📍 Posizione: ${position.x.toFixed(1)}, ${position.z.toFixed(1)}`);
         
         // Crea mesh
         const geometry = this.geometries.get(hazardType.id);
         const material = this.materials.get(hazardType.id);
         
-        if (!geometry || !material) return;
+        if (!geometry || !material) {
+            console.error(`[HazardManager] ❌ Geometria o materiale mancante per ${hazardType.id}`);
+            console.log('  Geometrie:', Array.from(this.geometries.keys()));
+            console.log('  Materiali:', Array.from(this.materials.keys()));
+            return;
+        }
         
         let mesh;
         if (geometry instanceof THREE.Group) {
